@@ -9,6 +9,7 @@ Watch all 7 Coachella stage streams at once — with live schedules, a full-scre
 - **Main view** — Full-screen focused player with draggable PiP windows for 2 other stages
 - **Stage switcher** — Thumbnail row at the bottom for instant crossfade switching
 - **Full schedule overlay** — Visual timeline grid across all stages, for all 6 festival days
+- **Theater mode** — collapse the info bar and stage switcher for a distraction-free view (`T` to toggle)
 - **Stream URLs pre-loaded** — Weekend 1 IDs are hardcoded; no setup needed
 - **Embed error handling** — Detects YouTube embedding blocks and shows a direct YouTube link
 - **Keyboard shortcuts** — See below
@@ -36,6 +37,7 @@ Upload `index.html` to any static host (GitHub Pages, Netlify, etc.) and it will
 |-----|--------|
 | `1` – `7` | Switch to stage 1–7 |
 | `M` | Mute / unmute main player |
+| `T` | Toggle theater mode |
 | `S` | Open / close schedule |
 | `Esc` | Back out (close schedule → close modal → return to grid) |
 
