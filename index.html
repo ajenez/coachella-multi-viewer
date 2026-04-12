@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coachella 2026 — Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07070d;
+      --card-bg: #0f0f1a;
+      --card-bg-2: #13131f;
+      --border: #1c1c2e;
+      --border-hover: #3a3a5c;
+      --text: #f0f0ff;
+      --text-dim: #7070a0;
+      --text-dimmer: #3a3a5a;
+      --pink: #e8356d;
+      --purple: #7c3aed;
+      --blue: #2563eb;
+      --orange: #f59e0b;
+      --green: #10b981;
+      --gradient: linear-gradient(135deg, #e8356d 0%, #7c3aed 50%, #2563eb 100%);
+      --gradient-text: linear-gradient(90deg, #e8356d, #c026d3, #7c3aed);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ─── SCROLLBAR ─────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a40; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3a58; }
+
+    /* ─── HEADER ────────────────────────────────────── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0 24px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(7,7,13,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(232, 53, 109, 0.12);
+      border: 1px solid rgba(232, 53, 109, 0.3);
+      border-radius: 20px;
+      padding: 3px 9px 3px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pink);
+      letter-spacing: 0.5px;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--pink);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .header-right { display: flex; align-items: center; gap: 16px; }
+
+    .header-day {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    .header-clock {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.3px;
+    }
+
+    .config-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.18s;
+    }
+    .config-btn:hover { border-color: var(--border-hover); color: var(--text); }
+    .config-btn svg { flex-shrink: 0; }
+
+    /* ─── GRID VIEW ─────────────────────────────────── */
+    #grid-view { min-height: calc(100vh - 58px); }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 14px;
+      padding: 18px;
+    }
+
+    @media (min-width: 1600px) {
+      .stage-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .stage-grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+      .header { padding: 0 14px; }
+      .header-clock { display: none; }
+    }
+
+    /* ─── STAGE CARD ────────────────────────────────── */
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .stage-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #000;
+      overflow: hidden;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #050510;
+    }
+    .placeholder-icon {
+      width: 42px;
+      height: 42px;
+      opacity: 0.18;
+    }
+    .placeholder-label {
+      font-size: 11px;
+      color: var(--text-dimmer);
+      text-align: center;
+    }
+    .find-stream-btn {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--blue);
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      border-radius: 6px;
+      padding: 5px 11px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .find-stream-btn:hover { background: rgba(37,99,235,0.18); color: #60a5fa; }
+
+    /* Hover overlay */
+    .card-hover-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: calc(100% - 100px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      opacity: 0;
+      transition: opacity 0.18s;
+      pointer-events: none;
+    }
+    .stage-card:hover .card-hover-overlay { opacity: 1; }
+    .make-main-label {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      padding: 9px 22px;
+      border-radius: 30px;
+    }
+
+    /* Card info */
+    .card-info { padding: 13px 15px 14px; }
+
+    .card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+    }
+    .stage-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .badge-4k {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      color: #60a5fa;
+    }
+
+    .now-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      min-height: 26px;
+    }
+    .now-badge {
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--green);
+    }
+    .now-artist {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+    .between-sets-text {
+      font-size: 12px;
+      color: var(--text-dimmer);
+      font-style: italic;
+    }
+
+    .progress-bar-wrap {
+      height: 2px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1px;
+      margin-bottom: 9px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 1px;
+      transition: width 2s linear;
+    }
+
+    .next-list { display: flex; flex-direction: column; gap: 3px; }
+    .next-item {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.3;
+    }
+    .next-time {
+      font-size: 10px;
+      color: var(--orange);
+      font-weight: 600;
+      flex-shrink: 0;
+      min-width: 40px;
+      font-variant-numeric: tabular-nums;
+    }
+    .no-more-text { font-size: 12px; color: var(--text-dimmer); font-style: italic; }
+
+    /* ─── OFF-DAY SCREEN ────────────────────────────── */
+    #off-day-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 58px);
+      gap: 14px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .off-day-emoji { font-size: 56px; }
+    .off-day-title { font-size: 26px; font-weight: 800; }
+    .off-day-sub { font-size: 15px; color: var(--text-dim); line-height: 1.6; }
+    .off-day-sub strong { color: var(--orange); }
+
+    /* ─── MAIN VIEW ─────────────────────────────────── */
+    #main-view {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,13,0.9);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .back-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .back-btn svg { flex-shrink: 0; }
+
+    .main-stage-name {
+      font-size: 15px;
+      font-weight: 800;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .main-topbar-clock {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Main body: player + switcher */
+    .main-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-player-wrap {
+      flex: 1;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.25s ease;
+    }
+    #main-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .main-no-stream {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #050510;
+    }
+    .main-no-stream-icon { font-size: 52px; opacity: 0.15; }
+    .main-no-stream-text { font-size: 15px; color: var(--text-dim); }
+    .main-no-stream-btn {
+      background: var(--card-bg-2);
+      border: 1px solid var(--border-hover);
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .main-no-stream-btn:hover { color: var(--text); border-color: var(--purple); }
+
+    /* Info bar below main player */
+    .main-info-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 22px;
+      border-top: 1px solid var(--border);
+      background: var(--card-bg);
+      flex-shrink: 0;
+      gap: 20px;
+    }
+    .main-now-block { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .main-now-badge {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--green);
+      flex-shrink: 0;
+    }
+    .main-now-artist { font-size: 20px; font-weight: 800; line-height: 1.1; }
+    .main-now-time { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+    .main-upcoming {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .main-upcoming::-webkit-scrollbar { display: none; }
+    .main-up-item { flex-shrink: 0; }
+    .main-up-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dimmer);
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    .main-up-artist { font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .main-up-time { font-size: 11px; color: var(--orange); margin-top: 1px; }
+
+    /* Stage switcher row */
+    .switcher-row {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .switcher-row::-webkit-scrollbar { display: none; }
+
+    .switcher-card {
+      flex-shrink: 0;
+      width: 176px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .switcher-card:hover { border-color: var(--border-hover); }
+    .switcher-card.active-stage {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 1px var(--pink);
+    }
+
+    .switcher-thumb {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #050510;
+      overflow: hidden;
+    }
+    .switcher-thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .switcher-thumb-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      opacity: 0.15;
+    }
+
+    .switcher-info { padding: 7px 9px 8px; }
+    .switcher-stage { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; margin-bottom: 2px; }
+    .switcher-artist { font-size: 11px; font-weight: 500; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ─── MODAL ─────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: #0e0e1c;
+      border: 1px solid var(--border-hover);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 86vh;
+      overflow-y: auto;
+      padding: 26px 26px 22px;
+    }
+
+    .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .modal-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.65;
+      margin-bottom: 22px;
+    }
+    .modal-sub a { color: #60a5fa; text-decoration: none; }
+    .modal-sub a:hover { text-decoration: underline; }
+
+    .input-group { margin-bottom: 14px; }
+    .input-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .stream-input {
+      width: 100%;
+      background: #080814;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 12.5px;
+      padding: 9px 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .stream-input:focus { border-color: var(--purple); }
+    .stream-input::placeholder { color: var(--text-dimmer); }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--border-hover); color: var(--text); }
+    .btn-save {
+      background: var(--gradient);
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 24px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .btn-save:hover { opacity: 0.88; }
+
+    /* Responsive main view */
+    @media (max-width: 640px) {
+      .main-info-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .main-now-artist { font-size: 16px; }
+      .main-topbar-clock { display: none; }
+      .switcher-card { width: 150px; }
+    }
+
+    /* ─── FILE:// WARNING ───────────────────────────── */
+    .file-warning-bar {
+      background: rgba(245,158,11,0.08);
+      border-bottom: 1px solid rgba(245,158,11,0.2);
+      padding: 9px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #fcd34d;
+      line-height: 1.5;
+      flex-wrap: wrap;
+    }
+    .file-warning-bar code {
+      background: rgba(252,211,77,0.12);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: nowrap;
+    }
+    .close-warning {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #fcd34d;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      opacity: 0.6;
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+    .close-warning:hover { opacity: 1; }
+
+    /* ─── EMBED ERROR — GRID CARD ───────────────────── */
+    .embed-error-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #060610;
+    }
+    .embed-error-overlay > img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+    .eeo-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      text-align: center;
+      padding: 8px 12px;
+    }
+    .eeo-label {
+      font-size: 10px;
+      color: var(--text-dimmer);
+      font-weight: 500;
+    }
+    .yt-open-btn {
+      background: #c00;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.15s;
+    }
+    .yt-open-btn:hover { opacity: 0.82; }
+
+    /* ─── EMBED ERROR — MAIN VIEW ───────────────────── */
+    .main-embed-blocked {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #060610;
+    }
+    .main-embed-blocked > img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.16;
+      pointer-events: none;
+    }
+    .meb-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 24px;
+      max-width: 380px;
+    }
+    .meb-title { font-size: 17px; font-weight: 800; }
+    .meb-sub { font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+    .yt-open-btn-lg {
+      background: #c00;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 11px 26px;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.15s;
+      margin-top: 4px;
+    }
+    .yt-open-btn-lg:hover { opacity: 0.82; }
+
+    /* ─── SCHEDULE BUTTON (header) ─────────────────── */
+    .schedule-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.28);
+      color: #a78bfa; font-size: 12px; font-weight: 500;
+      padding: 6px 13px; border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: all 0.18s;
+    }
+    .schedule-btn:hover { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
+
+    /* ─── MUTE BUTTON — GRID CARD ───────────────────── */
+    .mute-btn {
+      position: absolute; bottom: 8px; right: 8px; z-index: 3;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8); font-size: 13px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity 0.18s, background 0.15s;
+      padding: 0;
+    }
+    .stage-card:hover .mute-btn { opacity: 1; }
+    .mute-btn:hover { background: rgba(0,0,0,0.88); color: #fff; }
+    .mute-btn.muted { color: #f87171; }
+
+    /* ─── REBROADCAST OVERLAY ───────────────────────── */
+    .rebroadcast-overlay {
+      position: absolute; inset: 0; z-index: 3;
+      background: rgba(0,0,0,0.58);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 5px;
+      pointer-events: none;
+    }
+    .rb-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+      color: rgba(255,255,255,0.38); text-transform: uppercase;
+    }
+    .rb-icon { font-size: 20px; opacity: 0.3; }
+
+    /* ─── SWITCHER ENHANCEMENTS ─────────────────────── */
+    .switcher-progress {
+      height: 2px; background: rgba(255,255,255,0.06);
+      margin: 3px 9px 0; border-radius: 1px; overflow: hidden;
+    }
+    .switcher-progress-fill {
+      height: 100%; background: var(--gradient);
+      border-radius: 1px; transition: width 2s linear;
+    }
+    .switcher-next {
+      font-size: 9px; color: var(--text-dimmer);
+      padding: 3px 9px 7px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .switcher-next .sw-next-time { color: var(--orange); font-weight: 600; }
+
+    /* ─── MAIN TOPBAR EXTRAS ────────────────────────── */
+    .main-topbar-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .main-mute-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-dim); font-size: 14px; width: 32px; height: 32px;
+      border-radius: 8px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s; padding: 0;
+    }
+    .main-mute-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+    .main-mute-btn.muted { color: #f87171; border-color: rgba(248,113,113,0.3); }
+    .main-sched-btn {
+      background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.28);
+      color: #a78bfa; font-size: 13px; width: 32px; height: 32px;
+      border-radius: 8px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s; padding: 0;
+    }
+    .main-sched-btn:hover { background: rgba(124,58,237,0.2); color: #c4b5fd; }
+    .kb-hint {
+      display: flex; gap: 5px; align-items: center;
+      font-size: 10px; color: var(--text-dimmer);
+    }
+    .kb-key {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 3px; padding: 1px 5px;
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 9px;
+      color: var(--text-dim);
+    }
+    @media (max-width: 700px) { .kb-hint { display: none; } }
+
+    /* ─── PiP WINDOWS ───────────────────────────────── */
+    #pip-container {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 10;
+    }
+    .pip-window {
+      position: absolute; width: 200px; height: 112px;
+      background: #000; border-radius: 8px; overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.18);
+      pointer-events: all; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+      user-select: none;
+    }
+    .pip-window:hover { border-color: rgba(255,255,255,0.42); }
+    .pip-window iframe {
+      width: 100%; height: 100%; border: none; display: block;
+      pointer-events: none;
+    }
+    .pip-drag-handle {
+      position: absolute; top: 0; left: 0; right: 0; height: 24px;
+      cursor: grab; z-index: 1;
+    }
+    .pip-drag-handle:active { cursor: grabbing; }
+    .pip-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 16px 7px 5px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.82));
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; pointer-events: none; line-height: 1.3;
+    }
+    .pip-switch-hint {
+      font-size: 8px; color: rgba(255,255,255,0.45); font-weight: 400;
+      text-transform: none; letter-spacing: 0;
+    }
+
+    /* ─── SCHEDULE OVERLAY ──────────────────────────── */
+    #schedule-overlay {
+      position: fixed; inset: 0; z-index: 160;
+      background: var(--bg); display: flex; flex-direction: column;
+    }
+    .schedule-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,13,0.95); backdrop-filter: blur(20px);
+      flex-shrink: 0; gap: 16px;
+    }
+    .schedule-title { font-size: 14px; font-weight: 800; flex-shrink: 0; }
+    .sched-day-tabs { display: flex; gap: 4px; }
+    .sched-tab {
+      padding: 5px 14px; border-radius: 7px; font-size: 11px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border);
+      color: var(--text-dim); background: none; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .sched-tab:hover { color: var(--text); border-color: var(--border-hover); }
+    .sched-tab.active {
+      background: var(--gradient); border-color: transparent; color: #fff;
+    }
+    .sched-close-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text-dim);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      padding: 6px 10px; border-radius: 7px; font-family: inherit;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .sched-close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .schedule-body { flex: 1; overflow: auto; position: relative; }
+    .sched-stage-headers {
+      display: flex; position: sticky; top: 0; z-index: 10;
+      background: rgba(10,10,20,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .sched-time-gutter {
+      width: 56px; flex-shrink: 0; position: relative;
+    }
+    .sched-stage-header {
+      width: 170px; flex-shrink: 0; padding: 9px 10px 8px;
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; text-align: center;
+      border-left: 1px solid var(--border);
+    }
+    .sched-grid-wrap {
+      display: flex; min-width: max-content; position: relative;
+    }
+    .sched-time-ruler {
+      width: 56px; flex-shrink: 0; position: relative;
+      flex-shrink: 0;
+    }
+    .sched-time-mark {
+      position: absolute; right: 8px;
+      font-size: 9px; color: var(--text-dimmer);
+      transform: translateY(-50%); white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .sched-stage-col {
+      width: 170px; flex-shrink: 0; position: relative;
+      border-left: 1px solid var(--border);
+    }
+    .sched-hour-line {
+      position: absolute; left: 0; right: 0; height: 1px;
+      background: var(--border); pointer-events: none;
+    }
+    .sched-set-block {
+      position: absolute; left: 4px; right: 4px;
+      border-radius: 6px; padding: 5px 7px;
+      font-size: 10px; font-weight: 600; overflow: hidden;
+      cursor: pointer; transition: filter 0.15s, transform 0.12s;
+      line-height: 1.3; border-left: 3px solid currentColor;
+    }
+    .sched-set-block:hover { filter: brightness(1.25); transform: translateX(1px); z-index: 5; }
+    .sched-set-block.now-playing {
+      outline: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 0 10px -2px currentColor;
+    }
+    .sched-set-block.past { opacity: 0.42; }
+    .sched-set-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sched-set-time { font-size: 8px; opacity: 0.65; margin-top: 1px; white-space: nowrap; }
+    .sched-now-line {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: var(--pink); z-index: 8; pointer-events: none;
+    }
+    .sched-now-dot {
+      position: absolute; left: 52px; top: -4px;
+      width: 10px; height: 10px; border-radius: 50%; background: var(--pink);
+    }
+    .sched-now-badge {
+      position: absolute; left: 64px; top: -9px;
+      font-size: 8px; font-weight: 800; color: var(--pink);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- File:// protocol warning -->
+<div class="file-warning-bar hidden" id="file-warning">
+  <span>⚠</span>
+  <span>YouTube embeds are blocked when opening as a local file. Serve via HTTP for streams to work:</span>
+  <code>cd ~/Desktop/testbuilds/coachellaviewer && python3 -m http.server 8080</code>
+  <span>then open</span>
+  <code>http://localhost:8080</code>
+  <button class="close-warning" onclick="this.parentElement.remove()">×</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     GRID VIEW
+════════════════════════════════════════════════════ -->
+<div id="grid-view">
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">COACHELLA 2026</span>
+      <div class="live-pill">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="header-day" id="header-day"></span>
+      <span class="header-clock" id="header-clock"></span>
+      <button class="schedule-btn" onclick="openSchedule()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Schedule
+      </button>
+      <button class="config-btn" onclick="openModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Set Stream URLs
+      </button>
+    </div>
+  </header>
+
+  <!-- Off-day message -->
+  <div id="off-day-screen" class="hidden">
+    <div class="off-day-emoji">🌵</div>
+    <div class="off-day-title">See you at the fest!</div>
+    <div class="off-day-sub">
+      Coachella 2026 streams live on<br>
+      <strong>Weekend 1: Apr 10–12</strong> &nbsp;·&nbsp; <strong>Weekend 2: Apr 17–19</strong><br><br>
+      Next stream day: <strong id="next-day-label">soon</strong>
+    </div>
+  </div>
+
+  <div id="stage-grid" class="stage-grid"></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN VIEW
+════════════════════════════════════════════════════ -->
+<div id="main-view" class="hidden">
+  <div class="main-topbar">
+    <button class="back-btn" onclick="closeMain()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      All Stages
+    </button>
+    <span class="main-stage-name" id="main-stage-name-el">Coachella Stage</span>
+    <div class="main-topbar-right">
+      <button class="main-mute-btn" id="main-mute-btn" onclick="toggleMainMute()" title="Mute / Unmute (M)">🔊</button>
+      <button class="main-sched-btn" onclick="openSchedule()" title="Full Schedule (S)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </button>
+      <div class="kb-hint">
+        <span class="kb-key">1–7</span>
+        <span class="kb-key">M</span>
+        <span class="kb-key">S</span>
+        <span class="kb-key">Esc</span>
+      </div>
+      <span class="main-topbar-clock" id="main-clock">—</span>
+    </div>
+  </div>
+
+  <div class="main-body">
+    <div class="main-player-wrap">
+      <iframe id="main-iframe"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen></iframe>
+      <!-- PiP windows injected here by renderPiP() -->
+      <div id="pip-container"></div>
+      <!-- Shown when YouTube blocks embedding -->
+      <div class="main-embed-blocked hidden" id="main-embed-blocked">
+        <img id="main-blocked-thumb" src="" alt="">
+        <div class="meb-content">
+          <div class="meb-title">⚠ Embedding Blocked</div>
+          <div class="meb-sub">YouTube has restricted this stream from being embedded on external sites. Watch it directly on YouTube instead.</div>
+          <a id="main-blocked-link" href="#" target="_blank" class="yt-open-btn-lg"
+             onclick="event.stopPropagation()">▶ Watch on YouTube</a>
+        </div>
+      </div>
+      <!-- Shown when no URL is set -->
+      <div class="main-no-stream hidden" id="main-no-stream">
+        <div class="main-no-stream-icon">📺</div>
+        <div class="main-no-stream-text">No stream URL set for this stage</div>
+        <button class="main-no-stream-btn" onclick="openModal()">Set Stream URL →</button>
+      </div>
+    </div>
+
+    <div class="main-info-bar">
+      <div class="main-now-block">
+        <div class="main-now-badge">NOW</div>
+        <div>
+          <div class="main-now-artist" id="main-now-artist">—</div>
+          <div class="main-now-time" id="main-now-time"></div>
+        </div>
+      </div>
+      <div class="main-upcoming" id="main-upcoming"></div>
+    </div>
+
+    <div class="switcher-row" id="switcher-row"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCHEDULE OVERLAY
+════════════════════════════════════════════════════ -->
+<div id="schedule-overlay" class="hidden">
+  <div class="schedule-topbar">
+    <span class="schedule-title">📅 Full Schedule</span>
+    <div class="sched-day-tabs" id="sched-day-tabs"></div>
+    <button class="sched-close-btn" onclick="closeSchedule()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Close
+    </button>
+  </div>
+  <div class="schedule-body" id="schedule-body">
+    <div class="sched-stage-headers" id="sched-stage-headers"></div>
+    <div id="schedule-grid"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL
+════════════════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="modal-backdrop" onclick="backdropClick(event)">
+  <div class="modal">
+    <div class="modal-title">Set Stream URLs</div>
+    <div class="modal-sub">
+      Paste a YouTube video URL or video ID for each stage.<br>
+      Find all live streams at <a href="https://youtube.com/@coachella" target="_blank">youtube.com/@coachella</a> — look for the 7 concurrent live videos.
+    </div>
+    <div id="modal-inputs"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveStreams()">Save Streams</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────
+// STAGE DEFINITIONS
+// ─────────────────────────────────────────────────────
+const STAGES = [
+  { id: 'coachella', name: 'Coachella Stage',  color: '#f59e0b', is4k: true  },
+  { id: 'outdoor',   name: 'Outdoor Theatre',  color: '#38bdf8', is4k: true  },
+  { id: 'sahara',    name: 'Sahara',            color: '#f97316', is4k: true  },
+  { id: 'mojave',    name: 'Mojave',            color: '#a3e635', is4k: false },
+  { id: 'gobi',      name: 'Gobi',              color: '#c084fc', is4k: false },
+  { id: 'sonora',    name: 'Sonora',            color: '#f472b6', is4k: false },
+  { id: 'quasar',    name: 'Quasar',            color: '#34d399', is4k: false },
+];
+
+const DEFAULTS = {
+  coachella: '', outdoor: '', sahara: '', mojave: '', gobi: '', sonora: '', quasar: ''
+};
+
+// ─────────────────────────────────────────────────────
+// SCHEDULE DATA  (all times in festival hours, 24h+)
+// Post-midnight: 12:00am → [24,0], 12:30am → [24,30], 1:00am → [25,0]
+// ─────────────────────────────────────────────────────
+const SCHEDULE = {
+  '2026-04-10': { // Friday
+    coachella: [
+      { a: 'Record Safari',     s: [16,15], e: [17,20] },
+      { a: 'Teddy Swims',       s: [17,30], e: [18,20] },
+      { a: 'The xx',            s: [19, 0], e: [19,55] },
+      { a: 'Sabrina Carpenter', s: [21, 5], e: [22,35] },
+      { a: 'Anyma',             s: [24, 0], e: [25,30] },
+    ],
+    outdoor: [
+      { a: 'Tiffany Tyson',  s: [14,50], e: [15,50] },
+      { a: 'Dabeull',        s: [16, 0], e: [16,50] },
+      { a: 'Lykke Li',       s: [17,20], e: [18,10] },
+      { a: 'Dijon',          s: [18,40], e: [19,30] },
+      { a: 'Turnstile',      s: [20, 5], e: [21, 0] },
+      { a: 'Disclosure',     s: [22,35], e: [23,50] },
+    ],
+    sahara: [
+      { a: 'Massio',            s: [14,30], e: [15,35] },
+      { a: 'Youna',             s: [15,45], e: [16,35] },
+      { a: 'HUGEL',             s: [16,50], e: [17,50] },
+      { a: 'Marlon Hoffstadt',  s: [18,15], e: [19,15] },
+      { a: 'KATSEYE',           s: [20, 0], e: [20,45] },
+      { a: 'Levity',            s: [21,15], e: [22,20] },
+      { a: 'Swae Lee',          s: [22,50], e: [23,40] },
+      { a: 'Sexyy Red',         s: [24, 5], e: [24,55] },
+    ],
+    mojave: [
+      { a: 'Novasoul',      s: [14, 0], e: [14,50] },
+      { a: 'Slayyyter',     s: [15, 0], e: [15,45] },
+      { a: 'BINI',          s: [16,15], e: [17, 0] },
+      { a: 'Central Cee',   s: [17,30], e: [18,15] },
+      { a: 'Devo',          s: [18,45], e: [19,40] },
+      { a: 'Moby',          s: [20,10], e: [21, 0] },
+      { a: 'Ethel Cain',    s: [22,35], e: [23,25] },
+      { a: 'Blood Orange',  s: [23,55], e: [24,45] },
+    ],
+    gobi: [
+      { a: 'Cahuilla Bird Singers', s: [14,15], e: [14,45] },
+      { a: 'Bob Baker Marionettes', s: [14,55], e: [15,35] },
+      { a: 'NewDad',                s: [16, 0], e: [16,40] },
+      { a: 'Joyce Manor',           s: [17,10], e: [17,50] },
+      { a: 'CMAT',                  s: [18,15], e: [18,55] },
+      { a: 'fakemink',              s: [19,20], e: [20, 0] },
+      { a: 'Holly Humberstone',     s: [20,25], e: [21,10] },
+      { a: 'Joost',                 s: [21,50], e: [22,35] },
+      { a: 'Creepy Nuts',           s: [23, 5], e: [23,55] },
+    ],
+    sonora: [
+      { a: 'Doom Dave',         s: [13, 0], e: [13,40] },
+      { a: 'Febuary',           s: [13,40], e: [14,10] },
+      { a: 'Carolina Durante',  s: [14,35], e: [15,15] },
+      { a: 'Wednesday',         s: [15,40], e: [16,20] },
+      { a: 'Freshwater',        s: [16,50], e: [17,30] },
+      { a: 'The Two Lips',      s: [18, 0], e: [18,40] },
+      { a: 'Ninajirachi',       s: [19,10], e: [20, 0] },
+      { a: 'Cachirula & Loojan',s: [20,25], e: [21, 5] },
+      { a: 'Hot Mulligan',      s: [22, 0], e: [22,45] },
+      { a: 'Not For Radio',     s: [23,50], e: [24,50] },
+    ],
+    quasar: [
+      { a: 'Tiga',      s: [17, 0], e: [19, 0] },
+      { a: 'Deep Dish', s: [19, 0], e: [21, 0] },
+      { a: 'PAWSA',     s: [21, 0], e: [23, 0] },
+    ],
+  },
+  '2026-04-11': { // Saturday — from official YouTube stream descriptions
+    coachella: [
+      { a: 'Addison Rae',   s: [17,30], e: [19, 0] },
+      { a: 'GIVĒON',        s: [19, 0], e: [21, 0] },
+      { a: 'The Strokes',   s: [21, 0], e: [23,25] },
+      { a: 'Justin Bieber', s: [23,25], e: [25,30] },
+    ],
+    outdoor: [
+      { a: 'Los Hermanos Flores', s: [16, 0], e: [17,10] },
+      { a: 'Alex G',              s: [17,10], e: [18,10] },
+      { a: 'Blondshell',          s: [18,10], e: [19, 5] },
+      { a: 'SOMBR',               s: [19, 5], e: [20,30] },
+      { a: 'Labrinth',            s: [20,30], e: [22,20] },
+      { a: 'David Byrne',         s: [22,20], e: [23,40] },
+    ],
+    sahara: [
+      { a: 'ZULAN',               s: [16, 0], e: [17, 0] },
+      { a: 'Hamdi',               s: [17, 0], e: [18,15] },
+      { a: '¥ØU$UK€ ¥UK1MAT$U',  s: [18,15], e: [19,15] },
+      { a: 'TEED',                s: [19,15], e: [20, 0] },
+      { a: 'Nine Inch Noize',     s: [20, 0], e: [21,10] },
+      { a: 'REZZ',                s: [21,10], e: [22,30] },
+      { a: 'Adriatique',          s: [22,30], e: [23,55] },
+      { a: 'WORSHIP',             s: [23,55], e: [25,30] },
+    ],
+    mojave: [
+      { a: 'Jack White',      s: [16, 0], e: [16,50] },
+      { a: 'Fujii Kaze',      s: [16,50], e: [17,50] },
+      { a: 'Royel Otis',      s: [17,50], e: [19,30] },
+      { a: 'Taemin',          s: [19,30], e: [20,55] },
+      { a: 'PinkPantheress',  s: [20,55], e: [22,15] },
+      { a: 'Interpol',        s: [22,15], e: [23,30] },
+    ],
+    gobi: [
+      { a: 'WHATMORE',     s: [16, 5], e: [17,10] },
+      { a: 'Luísa Sonza',  s: [17,10], e: [18,15] },
+      { a: 'Geese',        s: [18,15], e: [19, 5] },
+      { a: 'Noga Erez',    s: [19, 5], e: [19,50] },
+      { a: 'Davido',       s: [19,50], e: [21, 0] },
+      { a: 'BIA',          s: [21, 0], e: [22,10] },
+      { a: 'Morat',        s: [22,10], e: [23,30] },
+    ],
+    sonora: [
+      { a: 'Ecca Vandal',      s: [16,20], e: [17,30] },
+      { a: 'Ceremony',         s: [17,30], e: [18,40] },
+      { a: 'rusowsky',         s: [18,40], e: [19,50] },
+      { a: '54 Ultra',         s: [19,50], e: [20,45] },
+      { a: 'Die Spitz',        s: [20,45], e: [21,45] },
+      { a: 'Mind Enterprises', s: [21,45], e: [22,45] },
+      { a: 'Freak Slug',       s: [22,45], e: [24, 0] },
+    ],
+    quasar: [
+      { a: 'Joezi',             s: [17, 0], e: [19, 0] },
+      { a: 'Afrojack x Shimza', s: [19, 0], e: [21, 0] },
+      { a: 'David Guetta',      s: [21, 0], e: [23, 0] },
+    ],
+  },
+  '2026-04-12': { // Sunday — from official YouTube stream descriptions
+    coachella: [
+      { a: 'Tijuana Panthers', s: [16, 0], e: [16,45] },
+      { a: 'Wet Leg',          s: [16,45], e: [18,10] },
+      { a: 'Major Lazer',      s: [18,10], e: [19,50] },
+      { a: 'Young Thug',       s: [19,50], e: [21,55] },
+      { a: 'KAROL G',          s: [21,55], e: [24, 0] },
+    ],
+    outdoor: [
+      { a: 'Gigi Perez',        s: [16, 0], e: [17,15] },
+      { a: 'CLIPSE',            s: [17,15], e: [18,45] },
+      { a: 'Foster the People', s: [18,45], e: [20,40] },
+      { a: 'Laufey',            s: [20,40], e: [22,30] },
+      { a: 'BIGBANG',           s: [22,30], e: [24, 0] },
+    ],
+    sahara: [
+      { a: 'Girl Math (VNSSA x NALA)', s: [16, 0], e: [17, 5] },
+      { a: 'BUNT.',                    s: [17, 5], e: [18,10] },
+      { a: 'Duke Dumont',              s: [18,10], e: [19,25] },
+      { a: 'Mochakk',                  s: [19,25], e: [21, 5] },
+      { a: 'Subtronics',               s: [21, 5], e: [22,45] },
+      { a: 'Kaskade',                  s: [22,45], e: [24,15] },
+    ],
+    mojave: [
+      { a: 'Little Simz',         s: [16,25], e: [17,35] },
+      { a: 'Suicidal Tendencies', s: [17,35], e: [18,30] },
+      { a: 'Samia',               s: [18,30], e: [19,10] },
+      { a: 'Iggy Pop',            s: [19,10], e: [20,45] },
+      { a: 'FKA twigs',           s: [20,45], e: [22,15] },
+    ],
+    gobi: [
+      { a: 'COBRAH',        s: [16, 5], e: [17,15] },
+      { a: 'Oklou',         s: [17,15], e: [18,30] },
+      { a: 'Black Flag',    s: [18,30], e: [19,10] },
+      { a: 'flowerovlove',  s: [19,10], e: [19,45] },
+      { a: 'TOMORA',        s: [19,45], e: [21, 5] },
+      { a: 'The Rapture',   s: [21, 5], e: [22, 0] },
+      { a: 'The Chats',     s: [22, 0], e: [23,15] },
+    ],
+    sonora: [
+      { a: 'Model/Actriz',  s: [16, 0], e: [16,45] },
+      { a: 'Jane Remover',  s: [16,45], e: [17,30] },
+      { a: 'Los Retros',    s: [17,30], e: [18,40] },
+      { a: 'RØZ',           s: [18,40], e: [20, 0] },
+      { a: 'DRAIN',         s: [20, 0], e: [21,10] },
+      { a: 'French Police', s: [21,10], e: [22,15] },
+      { a: 'Glitterer',     s: [22,15], e: [23,30] },
+    ],
+    quasar: [
+      { a: 'Jazzy',          s: [16, 0], e: [18, 0] },
+      { a: 'JOY (Anonymous)',s: [18, 0], e: [20, 0] },
+      { a: 'Fatboy Slim',    s: [20, 0], e: [22, 0] },
+    ],
+  },
+  '2026-04-17': { // W2 Friday — schedule TBA
+    coachella: [], outdoor: [], sahara: [], mojave: [], gobi: [], sonora: [], quasar: []
+  },
+  '2026-04-18': { // W2 Saturday
+    coachella: [], outdoor: [], sahara: [], mojave: [], gobi: [], sonora: [], quasar: []
+  },
+  '2026-04-19': { // W2 Sunday
+    coachella: [], outdoor: [], sahara: [], mojave: [], gobi: [], sonora: [], quasar: []
+  },
+};
+
+const FEST_DAYS = Object.keys(SCHEDULE);
+
+// ─────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────
+let videoIds = {};
+let activeStageId = null;
+let activeIframeId = '';  // track what's loaded in main-iframe
+let mainMuted = false;
+const muteStates = {};     // stageId -> boolean (true = muted)
+let scheduleViewDay = null;// currently displayed day in schedule overlay
+let pipDragState = null;   // {el, startX, startY, startLeft, startTop, moved}
+
+// Schedule timeline constants
+const PX_PER_MIN  = 2;
+const SCHED_START = 13 * 60; // 1pm
+const SCHED_END   = 26 * 60; // 2am next day
+
+// ─────────────────────────────────────────────────────
+// PERSISTENCE
+// ─────────────────────────────────────────────────────
+function loadIds() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('c26_streams') || '{}');
+    STAGES.forEach(s => {
+      videoIds[s.id] = (saved[s.id] !== undefined ? saved[s.id] : DEFAULTS[s.id]) || '';
+    });
+  } catch { STAGES.forEach(s => videoIds[s.id] = DEFAULTS[s.id] || ''); }
+}
+
+function saveIds() {
+  localStorage.setItem('c26_streams', JSON.stringify(videoIds));
+}
+
+function parseVideoId(raw) {
+  if (!raw) return '';
+  raw = raw.trim();
+  const m = raw.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+  return '';
+}
+
+// ─────────────────────────────────────────────────────
+// TIME HELPERS
+// ─────────────────────────────────────────────────────
+function getPDT() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+}
+
+// Festival day key — if before 4am, roll back to previous day.
+// Must NOT use toISOString() as that converts to UTC and breaks late-night PDT dates.
+function festDay() {
+  const d = getPDT();
+  if (d.getHours() < 4) d.setDate(d.getDate() - 1);
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const dd   = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Minutes since midnight of the festival day (post-midnight hours get +1440)
+function festMins() {
+  const d = getPDT();
+  const h = d.getHours(), m = d.getMinutes();
+  return (h < 4 ? h + 24 : h) * 60 + m;
+}
+
+function fmt(h, m) {
+  const hd = h >= 24 ? h - 24 : h;
+  const ap = hd >= 12 ? 'pm' : 'am';
+  const h12 = hd > 12 ? hd - 12 : hd === 0 ? 12 : hd;
+  return `${h12}:${String(m).padStart(2,'0')}${ap}`;
+}
+
+function setRange(set) { return `${fmt(...set.s)} – ${fmt(...set.e)}`; }
+
+function getCurrentSet(stageId, day) {
+  const sets = (SCHEDULE[day] || {})[stageId] || [];
+  const now = festMins();
+  return sets.find(s => now >= s.s[0]*60+s.s[1] && now < s.e[0]*60+s.e[1]) || null;
+}
+
+function getUpcoming(stageId, day, n = 3) {
+  const sets = (SCHEDULE[day] || {})[stageId] || [];
+  const now = festMins();
+  return sets.filter(s => s.s[0]*60+s.s[1] > now).slice(0, n);
+}
+
+function getProgress(set) {
+  const now = festMins();
+  const s = set.s[0]*60+set.s[1], e = set.e[0]*60+set.e[1];
+  return Math.max(0, Math.min(100, ((now-s)/(e-s))*100));
+}
+
+function dayLabel(dateStr) {
+  const m = { '2026-04-10':'Friday','2026-04-11':'Saturday','2026-04-12':'Sunday',
+              '2026-04-17':'Friday','2026-04-18':'Saturday','2026-04-19':'Sunday' };
+  return m[dateStr] || '';
+}
+
+// ─────────────────────────────────────────────────────
+// EMBED URL
+// ─────────────────────────────────────────────────────
+function embedUrl(id, muted = true) {
+  // youtube-nocookie.com = privacy-enhanced embed; enablejsapi lets us receive error events
+  const p = new URLSearchParams({
+    autoplay: '1', mute: muted ? '1' : '0',
+    controls: '1', rel: '0', playsinline: '1', enablejsapi: '1',
+  });
+  return `https://www.youtube-nocookie.com/embed/${id}?${p}`;
+}
+
+function thumbUrl(id) {
+  return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+}
+
+// ─────────────────────────────────────────────────────
+// GRID RENDER
+// ─────────────────────────────────────────────────────
+function renderGrid() {
+  const day = festDay();
+  const isLive = !!SCHEDULE[day];
+  const grid = document.getElementById('stage-grid');
+  const offDay = document.getElementById('off-day-screen');
+
+  if (!isLive) {
+    grid.classList.add('hidden');
+    offDay.classList.remove('hidden');
+    const next = FEST_DAYS.find(d => d > day);
+    document.getElementById('next-day-label').textContent =
+      next ? `${dayLabel(next)}, ${next}` : 'soon';
+    return;
+  }
+
+  offDay.classList.add('hidden');
+  grid.classList.remove('hidden');
+  grid.innerHTML = '';
+
+  STAGES.forEach(stage => {
+    const vid = videoIds[stage.id];
+    const cur = getCurrentSet(stage.id, day);
+    const next = getUpcoming(stage.id, day, 2);
+
+    const card = document.createElement('div');
+    card.className = 'stage-card';
+    card.dataset.id = stage.id;
+
+    // Video section
+    const isRb = isRebroadcast(stage.id, day);
+    let videoHtml;
+    if (vid) {
+      videoHtml = `
+        <div class="video-wrap">
+          <iframe id="iframe_${stage.id}"
+            src="${embedUrl(vid, true)}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+          <div class="embed-error-overlay hidden" id="err_${stage.id}">
+            <img src="${thumbUrl(vid)}" alt="">
+            <div class="eeo-content">
+              <div class="eeo-label">Embedding blocked by YouTube</div>
+              <a href="https://www.youtube.com/watch?v=${vid}" target="_blank"
+                 class="yt-open-btn" onclick="event.stopPropagation()">Watch on YouTube ↗</a>
+            </div>
+          </div>
+          <div class="rebroadcast-overlay${isRb ? '' : ' hidden'}" id="rb_${stage.id}">
+            <div class="rb-icon">↺</div>
+            <div class="rb-label">Rebroadcast</div>
+          </div>
+          <div class="card-hover-overlay"><div class="make-main-label">▶ Make Main</div></div>
+          <button class="mute-btn${muteStates[stage.id] ? ' muted' : ''}" id="mute_${stage.id}"
+            onclick="toggleCardMute('${stage.id}', event)"
+            title="${muteStates[stage.id] ? 'Unmute' : 'Mute'}">${muteStates[stage.id] ? '🔇' : '🔊'}</button>
+        </div>`;
+    } else {
+      videoHtml = `
+        <div class="video-wrap">
+          <div class="video-placeholder">
+            <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            </svg>
+            <div class="placeholder-label">Stream not set</div>
+            <a href="https://youtube.com/@coachella" target="_blank"
+               class="find-stream-btn" onclick="event.stopPropagation()">
+              Find on YouTube ↗
+            </a>
+          </div>
+          <div class="card-hover-overlay"><div class="make-main-label">▶ Make Main</div></div>
+        </div>`;
+    }
+
+    // Now/next section
+    const nowHtml = cur
+      ? `<div class="now-row"><div class="now-badge">NOW</div><div class="now-artist">${cur.a}</div></div>
+         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${getProgress(cur)}%"></div></div>`
+      : `<div class="now-row"><div class="between-sets-text">Between sets</div></div>
+         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>`;
+
+    const nextHtml = next.length
+      ? next.map(s => `<div class="next-item"><span class="next-time">${fmt(...s.s)}</span><span>${s.a}</span></div>`).join('')
+      : `<div class="no-more-text">No more sets today</div>`;
+
+    card.innerHTML = `
+      ${videoHtml}
+      <div class="card-info">
+        <div class="card-top-row">
+          <div class="stage-label" style="color:${stage.color}">${stage.name}</div>
+          ${stage.is4k ? '<div class="badge-4k">4K</div>' : ''}
+        </div>
+        ${nowHtml}
+        <div class="next-list">${nextHtml}</div>
+      </div>`;
+
+    card.addEventListener('click', () => openMain(stage.id));
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// MAIN VIEW
+// ─────────────────────────────────────────────────────
+function openMain(stageId) {
+  activeStageId = stageId;
+  activeIframeId = '';
+  mainMuted = false;
+  const muteBtn = document.getElementById('main-mute-btn');
+  if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
+  document.getElementById('grid-view').style.display = 'none';
+  document.getElementById('main-view').classList.remove('hidden');
+  updateMain();
+  renderSwitcher();
+  renderPiP();
+}
+
+// Smooth crossfade when switching stage in main view
+function crossfadeToStage(stageId) {
+  if (!activeStageId || stageId === activeStageId) return;
+  const wrap = document.querySelector('.main-player-wrap');
+  wrap.style.opacity = '0';
+  setTimeout(() => {
+    activeStageId = stageId;
+    activeIframeId = '';
+    // Preserve mute state across switches
+    mainMuted = false;
+    const muteBtn = document.getElementById('main-mute-btn');
+    if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
+    updateMain();
+    renderSwitcher();
+    renderPiP();
+    requestAnimationFrame(() => { wrap.style.opacity = '1'; });
+  }, 250);
+}
+
+function closeMain() {
+  hideMainError();
+  const iframe = document.getElementById('main-iframe');
+  iframe.src = '';
+  activeIframeId = '';
+  activeStageId = null;
+  mainMuted = false;
+  // Clear PiP
+  const pipContainer = document.getElementById('pip-container');
+  if (pipContainer) pipContainer.innerHTML = '';
+  pipDragState = null;
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('grid-view').style.display = '';
+}
+
+// ─────────────────────────────────────────────────────
+// ERROR HANDLING
+// ─────────────────────────────────────────────────────
+function showCardError(stageId) {
+  const iframeEl = document.getElementById(`iframe_${stageId}`);
+  if (iframeEl) iframeEl.style.display = 'none';
+  const errEl = document.getElementById(`err_${stageId}`);
+  if (errEl) errEl.classList.remove('hidden');
+}
+
+function showMainError(vid) {
+  const iframe = document.getElementById('main-iframe');
+  if (iframe) { iframe.style.display = 'none'; }
+  const errEl = document.getElementById('main-embed-blocked');
+  if (!errEl) return;
+  if (vid) {
+    document.getElementById('main-blocked-thumb').src = thumbUrl(vid);
+    document.getElementById('main-blocked-link').href = `https://www.youtube.com/watch?v=${vid}`;
+  }
+  errEl.classList.remove('hidden');
+}
+
+function hideMainError() {
+  const iframe = document.getElementById('main-iframe');
+  if (iframe) { iframe.style.display = ''; iframe.style.visibility = 'visible'; }
+  const errEl = document.getElementById('main-embed-blocked');
+  if (errEl) errEl.classList.add('hidden');
+}
+
+// Listen for YouTube player error messages (requires enablejsapi=1 in embed URL)
+window.addEventListener('message', function(event) {
+  if (!event.data || typeof event.data !== 'string') return;
+  let data;
+  try { data = JSON.parse(event.data); } catch { return; }
+  if (data.event !== 'onError') return;
+
+  // Identify which iframe sent this message
+  const iframes = document.querySelectorAll('iframe');
+  for (const f of iframes) {
+    if (f.contentWindow === event.source) {
+      if (f.id === 'main-iframe') {
+        showMainError(videoIds[activeStageId] || '');
+      } else if (f.id.startsWith('iframe_')) {
+        showCardError(f.id.slice(7)); // strip "iframe_"
+      }
+      break;
+    }
+  }
+}, false);
+
+function updateMain() {
+  if (!activeStageId) return;
+  const stage = STAGES.find(s => s.id === activeStageId);
+  const day = festDay();
+  const vid = videoIds[activeStageId];
+  const iframe = document.getElementById('main-iframe');
+  const noStream = document.getElementById('main-no-stream');
+
+  document.getElementById('main-stage-name-el').textContent = stage.name;
+  hideMainError(); // reset error state whenever we switch stages
+
+  if (vid) {
+    noStream.classList.add('hidden');
+    iframe.style.visibility = 'visible';
+    if (vid !== activeIframeId) {
+      iframe.src = embedUrl(vid, false);
+      activeIframeId = vid;
+    }
+  } else {
+    noStream.classList.remove('hidden');
+    iframe.style.visibility = 'hidden';
+    iframe.src = '';
+    activeIframeId = '';
+  }
+
+  // Artist info
+  const cur = getCurrentSet(activeStageId, day);
+  const upcoming = getUpcoming(activeStageId, day, 3);
+
+  const artistEl = document.getElementById('main-now-artist');
+  const timeEl = document.getElementById('main-now-time');
+  if (cur) {
+    artistEl.textContent = cur.a;
+    timeEl.textContent = setRange(cur);
+  } else {
+    artistEl.textContent = '—';
+    timeEl.textContent = upcoming.length ? `Next: ${fmt(...upcoming[0].s)}` : 'No more sets today';
+  }
+
+  const upEl = document.getElementById('main-upcoming');
+  upEl.innerHTML = upcoming.slice(0,3).map((s,i) => `
+    <div class="main-up-item">
+      <div class="main-up-label">UP NEXT${i > 0 ? ' +'+i : ''}</div>
+      <div class="main-up-artist">${s.a}</div>
+      <div class="main-up-time">${fmt(...s.s)}</div>
+    </div>`).join('');
+}
+
+function renderSwitcher() {
+  const day = festDay();
+  const row = document.getElementById('switcher-row');
+  row.innerHTML = '';
+
+  STAGES.forEach(stage => {
+    const isActive = stage.id === activeStageId;
+    const vid = videoIds[stage.id];
+    const cur = getCurrentSet(stage.id, day);
+    const nxt = getUpcoming(stage.id, day, 1)[0] || null;
+    const pct = cur ? getProgress(cur) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'switcher-card' + (isActive ? ' active-stage' : '');
+    card.dataset.sid = stage.id;
+    card.innerHTML = `
+      <div class="switcher-thumb">
+        ${vid
+          ? `<img src="${thumbUrl(vid)}" alt="${stage.name}" loading="lazy">`
+          : `<div class="switcher-thumb-placeholder">📺</div>`}
+      </div>
+      <div class="switcher-info">
+        <div class="switcher-stage" style="color:${stage.color}">${stage.name}</div>
+        <div class="switcher-artist">${cur ? cur.a : (nxt ? '—' : 'Done')}</div>
+      </div>
+      <div class="switcher-progress">
+        <div class="switcher-progress-fill" id="swprog_${stage.id}" style="width:${pct}%"></div>
+      </div>
+      ${nxt ? `<div class="switcher-next">▸ <span class="sw-next-time">${fmt(...nxt.s)}</span> ${nxt.a}</div>` : '<div class="switcher-next"></div>'}`;
+
+    if (!isActive) {
+      card.addEventListener('click', () => {
+        crossfadeToStage(stage.id);
+      });
+    }
+    row.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────────────
+function openModal() {
+  const wrap = document.getElementById('modal-inputs');
+  wrap.innerHTML = STAGES.map(s => `
+    <div class="input-group">
+      <div class="input-label">
+        <span class="color-dot" style="background:${s.color}"></span>
+        ${s.name}
+      </div>
+      <input class="stream-input" id="mi_${s.id}" type="text"
+        placeholder="YouTube URL or video ID…"
+        value="${videoIds[s.id] || ''}">
+    </div>`).join('');
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.add('hidden');
+}
+
+function backdropClick(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+function saveStreams() {
+  STAGES.forEach(s => {
+    const el = document.getElementById(`mi_${s.id}`);
+    if (el) videoIds[s.id] = parseVideoId(el.value) || el.value.trim().replace(/https?:\/\/.*/, '');
+  });
+  saveIds();
+  closeModal();
+  renderGrid();
+  if (activeStageId) {
+    activeIframeId = '';
+    updateMain();
+    renderSwitcher();
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// CLOCK & LIVE UPDATES
+// ─────────────────────────────────────────────────────
+function updateClock() {
+  const d = getPDT();
+  const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  const h12 = h > 12 ? h-12 : h === 0 ? 12 : h;
+  const str = `${h12}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ap} PDT`;
+  document.getElementById('header-clock').textContent = str;
+  document.getElementById('main-clock').textContent = str;
+
+  const day = festDay();
+  const label = dayLabel(day);
+  document.getElementById('header-day').textContent = label ? `${label} · ${day}` : '';
+}
+
+function liveUpdate() {
+  const day = festDay();
+  if (activeStageId) {
+    // Update main artist info (not iframe src)
+    const cur = getCurrentSet(activeStageId, day);
+    const upcoming = getUpcoming(activeStageId, day, 3);
+    const artistEl = document.getElementById('main-now-artist');
+    const timeEl = document.getElementById('main-now-time');
+    if (cur) { artistEl.textContent = cur.a; timeEl.textContent = setRange(cur); }
+    else { artistEl.textContent = '—'; timeEl.textContent = upcoming.length ? `Next: ${fmt(...upcoming[0].s)}` : 'No more sets'; }
+    const upEl = document.getElementById('main-upcoming');
+    upEl.innerHTML = upcoming.slice(0,3).map((s,i) => `
+      <div class="main-up-item">
+        <div class="main-up-label">UP NEXT${i > 0 ? ' +'+i : ''}</div>
+        <div class="main-up-artist">${s.a}</div>
+        <div class="main-up-time">${fmt(...s.s)}</div>
+      </div>`).join('');
+
+    // Update switcher cards live
+    STAGES.forEach(stage => {
+      const c = getCurrentSet(stage.id, day);
+      const nxt = getUpcoming(stage.id, day, 1)[0] || null;
+      const card = document.querySelector(`.switcher-card[data-sid="${stage.id}"]`);
+      const artistEl2 = card && card.querySelector('.switcher-artist');
+      if (artistEl2) artistEl2.textContent = c ? c.a : (nxt ? '—' : 'Done');
+      const progEl = document.getElementById(`swprog_${stage.id}`);
+      if (progEl) progEl.style.width = c ? `${getProgress(c)}%` : '0%';
+      const nxtEl = card && card.querySelector('.switcher-next');
+      if (nxtEl) nxtEl.innerHTML = nxt ? `▸ <span class="sw-next-time">${fmt(...nxt.s)}</span> ${nxt.a}` : '';
+    });
+  } else {
+    // Update grid cards
+    document.querySelectorAll('.stage-card').forEach(card => {
+      const stageId = card.dataset.id;
+      const cur = getCurrentSet(stageId, day);
+      const upcoming = getUpcoming(stageId, day, 2);
+      const nowRow = card.querySelector('.now-row');
+      if (nowRow) {
+        nowRow.innerHTML = cur
+          ? `<div class="now-badge">NOW</div><div class="now-artist">${cur.a}</div>`
+          : `<div class="between-sets-text">Between sets</div>`;
+      }
+      const bar = card.querySelector('.progress-bar-fill');
+      if (bar) bar.style.width = cur ? `${getProgress(cur)}%` : '0%';
+      const nextList = card.querySelector('.next-list');
+      if (nextList) {
+        nextList.innerHTML = upcoming.length
+          ? upcoming.map(s => `<div class="next-item"><span class="next-time">${fmt(...s.s)}</span><span>${s.a}</span></div>`).join('')
+          : `<div class="no-more-text">No more sets today</div>`;
+      }
+    });
+    // Update rebroadcast overlays on grid
+    updateRebroadcastOverlays(day);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// MUTE / UNMUTE
+// ─────────────────────────────────────────────────────
+function toggleCardMute(stageId, e) {
+  e.stopPropagation();
+  muteStates[stageId] = !muteStates[stageId];
+  const iframe = document.getElementById(`iframe_${stageId}`);
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: 'command',
+      func: muteStates[stageId] ? 'mute' : 'unMute',
+      args: []
+    }), '*');
+  }
+  const btn = document.getElementById(`mute_${stageId}`);
+  if (btn) {
+    btn.textContent = muteStates[stageId] ? '🔇' : '🔊';
+    btn.title = muteStates[stageId] ? 'Unmute' : 'Mute';
+    btn.classList.toggle('muted', muteStates[stageId]);
+  }
+}
+
+function toggleMainMute() {
+  mainMuted = !mainMuted;
+  const iframe = document.getElementById('main-iframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: 'command',
+      func: mainMuted ? 'mute' : 'unMute',
+      args: []
+    }), '*');
+  }
+  const btn = document.getElementById('main-mute-btn');
+  if (btn) {
+    btn.textContent = mainMuted ? '🔇' : '🔊';
+    btn.classList.toggle('muted', mainMuted);
+    btn.title = mainMuted ? 'Unmute (M)' : 'Mute (M)';
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// REBROADCAST DETECTION
+// ─────────────────────────────────────────────────────
+function isRebroadcast(stageId, day) {
+  const sets = (SCHEDULE[day] || {})[stageId] || [];
+  if (!sets.length) return false;
+  const last = sets[sets.length - 1];
+  return festMins() > last.e[0] * 60 + last.e[1];
+}
+
+function updateRebroadcastOverlays(day) {
+  STAGES.forEach(stage => {
+    const overlay = document.getElementById(`rb_${stage.id}`);
+    if (overlay) overlay.classList.toggle('hidden', !isRebroadcast(stage.id, day));
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// PiP WINDOWS
+// ─────────────────────────────────────────────────────
+// Global PiP drag handlers (attached once)
+document.addEventListener('mousemove', function(e) {
+  if (!pipDragState) return;
+  const { el, startX, startY, startLeft, startTop } = pipDragState;
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) pipDragState.moved = true;
+  if (!pipDragState.moved) return;
+  const container = el.parentElement.getBoundingClientRect();
+  const maxLeft = container.width  - el.offsetWidth;
+  const maxTop  = container.height - el.offsetHeight;
+  el.style.left   = `${Math.max(0, Math.min(maxLeft, startLeft + dx))}px`;
+  el.style.top    = `${Math.max(0, Math.min(maxTop,  startTop  + dy))}px`;
+  el.style.right  = 'auto';
+  el.style.bottom = 'auto';
+});
+
+document.addEventListener('mouseup', function() {
+  if (!pipDragState) return;
+  if (!pipDragState.moved) {
+    crossfadeToStage(pipDragState.el.dataset.stageId);
+  }
+  pipDragState = null;
+});
+
+function makePiPDraggable(el) {
+  el.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    const rect = el.getBoundingClientRect();
+    const containerRect = el.parentElement.getBoundingClientRect();
+    pipDragState = {
+      el,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: rect.left - containerRect.left,
+      startTop:  rect.top  - containerRect.top,
+      moved: false
+    };
+    el.style.transition = 'none';
+    e.preventDefault();
+  });
+}
+
+function renderPiP() {
+  const container = document.getElementById('pip-container');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!activeStageId) return;
+
+  const day = festDay();
+  // Show up to 2 PiP windows for other stages that have a video set
+  const pipStages = STAGES.filter(s => s.id !== activeStageId && videoIds[s.id]).slice(0, 2);
+
+  pipStages.forEach((stage, i) => {
+    const vid = videoIds[stage.id];
+    const cur = getCurrentSet(stage.id, day);
+
+    const pip = document.createElement('div');
+    pip.className = 'pip-window';
+    pip.dataset.stageId = stage.id;
+    pip.style.right = '12px';
+    pip.style.top = `${12 + i * (112 + 10)}px`;
+
+    pip.innerHTML = `
+      <iframe src="${embedUrl(vid, true)}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      <div class="pip-drag-handle"></div>
+      <div class="pip-label" style="color:${stage.color}">
+        ${stage.name}${cur ? ` · ${cur.a}` : ''}
+        <div class="pip-switch-hint">Click to switch · Drag to move</div>
+      </div>`;
+
+    container.appendChild(pip);
+    makePiPDraggable(pip);
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// SCHEDULE VIEW
+// ─────────────────────────────────────────────────────
+function openSchedule() {
+  scheduleViewDay = scheduleViewDay || festDay() || FEST_DAYS[0];
+  // Fall back to first known fest day if today isn't one
+  if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
+  renderScheduleDayTabs();
+  renderScheduleView();
+  document.getElementById('schedule-overlay').classList.remove('hidden');
+}
+
+function closeSchedule() {
+  document.getElementById('schedule-overlay').classList.add('hidden');
+}
+
+function renderScheduleDayTabs() {
+  const tabsEl = document.getElementById('sched-day-tabs');
+  tabsEl.innerHTML = FEST_DAYS.map(d => `
+    <button class="sched-tab${d === scheduleViewDay ? ' active' : ''}"
+      onclick="switchScheduleDay('${d}')">
+      ${dayLabel(d)}<br><span style="font-size:9px;font-weight:400;opacity:0.7">${d.slice(5)}</span>
+    </button>`).join('');
+}
+
+function switchScheduleDay(day) {
+  scheduleViewDay = day;
+  renderScheduleDayTabs();
+  renderScheduleView();
+}
+
+function renderScheduleView() {
+  const day = scheduleViewDay;
+  const sched = SCHEDULE[day] || {};
+  const totalMins   = SCHED_END - SCHED_START;
+  const totalHeight = totalMins * PX_PER_MIN;
+  const today       = festDay();
+  const nowMins     = festMins();
+
+  // Stage header row
+  const headersEl = document.getElementById('sched-stage-headers');
+  headersEl.innerHTML = `<div class="sched-time-gutter"></div>` +
+    STAGES.map(st => `
+      <div class="sched-stage-header" style="color:${st.color}; border-top:2px solid ${st.color}20">
+        ${st.name}
+      </div>`).join('');
+
+  // Build grid inner
+  let inner = `<div class="sched-time-ruler">`;
+  for (let h = Math.ceil(SCHED_START / 60); h <= Math.floor(SCHED_END / 60); h++) {
+    const y = (h * 60 - SCHED_START) * PX_PER_MIN;
+    inner += `<div class="sched-time-mark" style="top:${y}px">${fmt(h, 0)}</div>`;
+  }
+  inner += `</div>`;
+
+  // Stage columns
+  STAGES.forEach(st => {
+    const sets = sched[st.id] || [];
+    inner += `<div class="sched-stage-col">`;
+
+    // Hour-dividers
+    for (let h = Math.ceil(SCHED_START / 60); h < Math.floor(SCHED_END / 60); h++) {
+      const y = (h * 60 - SCHED_START) * PX_PER_MIN;
+      inner += `<div class="sched-hour-line" style="top:${y}px"></div>`;
+    }
+
+    // Set blocks
+    sets.forEach(set => {
+      const sm = set.s[0] * 60 + set.s[1];
+      const em = set.e[0] * 60 + set.e[1];
+      const top    = (sm - SCHED_START) * PX_PER_MIN;
+      const height = Math.max(24, (em - sm) * PX_PER_MIN);
+      const isNow  = day === today && nowMins >= sm && nowMins < em;
+      const isPast = day === today && nowMins >= em;
+      inner += `<div class="sched-set-block${isNow ? ' now-playing' : ''}${isPast ? ' past' : ''}"
+        style="top:${top}px; height:${height}px; background:${st.color}1a; color:${st.color}; border-left-color:${st.color}"
+        onclick="schedSetClick('${st.id}')" title="${set.a} · ${setRange(set)}">
+        <div class="sched-set-name">${set.a}</div>
+        ${height > 28 ? `<div class="sched-set-time">${setRange(set)}</div>` : ''}
+      </div>`;
+    });
+    inner += `</div>`;
+  });
+
+  // Now-line (only for today)
+  if (day === today && nowMins >= SCHED_START && nowMins <= SCHED_END) {
+    const y = (nowMins - SCHED_START) * PX_PER_MIN;
+    inner += `<div class="sched-now-line" style="top:${y}px; position:absolute; left:56px; right:0">
+      <div class="sched-now-dot"></div>
+      <div class="sched-now-badge">NOW</div>
+    </div>`;
+  }
+
+  const gridEl = document.getElementById('schedule-grid');
+  gridEl.style.height = `${totalHeight + 24}px`;
+  gridEl.innerHTML = `<div class="sched-grid-wrap" style="min-height:${totalHeight}px; position:relative">${inner}</div>`;
+
+  // Scroll to current time on today's view
+  if (day === today && nowMins >= SCHED_START) {
+    const scrollY = Math.max(0, (nowMins - SCHED_START) * PX_PER_MIN - 120);
+    setTimeout(() => {
+      document.getElementById('schedule-body').scrollTop = scrollY;
+    }, 30);
+  }
+}
+
+function schedSetClick(stageId) {
+  closeSchedule();
+  if (activeStageId) {
+    crossfadeToStage(stageId);
+  } else {
+    openMain(stageId);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ─────────────────────────────────────────────────────
+function setupKeyboard() {
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    if (e.key >= '1' && e.key <= '7') {
+      const idx = parseInt(e.key) - 1;
+      if (idx < STAGES.length) {
+        if (activeStageId) crossfadeToStage(STAGES[idx].id);
+        else openMain(STAGES[idx].id);
+      }
+    } else if (e.key === 'm' || e.key === 'M') {
+      if (activeStageId) toggleMainMute();
+    } else if (e.key === 's' || e.key === 'S') {
+      const sched = document.getElementById('schedule-overlay');
+      if (sched.classList.contains('hidden')) openSchedule();
+      else closeSchedule();
+    } else if (e.key === 'Escape') {
+      const sched = document.getElementById('schedule-overlay');
+      const modal = document.getElementById('modal-backdrop');
+      if (!sched.classList.contains('hidden')) { closeSchedule(); }
+      else if (!modal.classList.contains('hidden')) { closeModal(); }
+      else if (activeStageId) { closeMain(); }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────
+(function init() {
+  loadIds();
+  scheduleViewDay = festDay() || FEST_DAYS[0];
+  if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
+  renderGrid();
+  updateClock();
+  setInterval(updateClock, 1000);
+  setInterval(liveUpdate, 30000);
+  setupKeyboard();
+  // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
+  if (window.location.protocol === 'file:') {
+    document.getElementById('file-warning').classList.remove('hidden');
+  }
+})();
+</script>
+</body>
+</html>
