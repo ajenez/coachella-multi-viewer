@@ -117,23 +117,6 @@
       letter-spacing: 0.3px;
     }
 
-    .config-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--card-bg-2);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 13px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.18s;
-    }
-    .config-btn:hover { border-color: var(--border-hover); color: var(--text); }
-    .config-btn svg { flex-shrink: 0; }
 
     /* ─── GRID VIEW ─────────────────────────────────── */
     #grid-view { min-height: calc(100vh - 58px); }
@@ -155,7 +138,7 @@
       .header-right { gap: 8px; }
       .header-clock, .header-day { display: none; }
       .btn-label { display: none; }
-      .schedule-btn, .config-btn {
+      .schedule-btn {
         padding: 7px;
         min-width: 34px;
         justify-content: center;
@@ -559,100 +542,6 @@
     .switcher-artist { font-size: 11px; font-weight: 500; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* ─── MODAL ─────────────────────────────────────── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal {
-      background: #0e0e1c;
-      border: 1px solid var(--border-hover);
-      border-radius: 18px;
-      width: 100%;
-      max-width: 540px;
-      max-height: 86vh;
-      overflow-y: auto;
-      padding: 26px 26px 22px;
-    }
-
-    .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-    .modal-sub {
-      font-size: 12px;
-      color: var(--text-dim);
-      line-height: 1.65;
-      margin-bottom: 22px;
-    }
-    .modal-sub a { color: #60a5fa; text-decoration: none; }
-    .modal-sub a:hover { text-decoration: underline; }
-
-    .input-group { margin-bottom: 14px; }
-    .input-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: var(--text-dim);
-      margin-bottom: 6px;
-    }
-    .color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .stream-input {
-      width: 100%;
-      background: #080814;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      color: var(--text);
-      font-size: 12.5px;
-      padding: 9px 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .stream-input:focus { border-color: var(--purple); }
-    .stream-input::placeholder { color: var(--text-dimmer); }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-    .btn-cancel {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-size: 13px;
-      font-weight: 500;
-      padding: 9px 18px;
-      border-radius: 9px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-    .btn-cancel:hover { border-color: var(--border-hover); color: var(--text); }
-    .btn-save {
-      background: var(--gradient);
-      border: none;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 9px 24px;
-      border-radius: 9px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.15s;
-    }
-    .btn-save:hover { opacity: 0.88; }
 
     /* Responsive main view */
     @media (max-width: 640px) {
@@ -1141,12 +1030,6 @@
         </svg>
         <span class="btn-label">Schedule</span>
       </button>
-      <button class="config-btn" onclick="openModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-        <span class="btn-label">Set Stream URLs</span>
-      </button>
     </div>
   </header>
 
@@ -1220,8 +1103,7 @@
       <!-- Shown when no URL is set -->
       <div class="main-no-stream hidden" id="main-no-stream">
         <div class="main-no-stream-icon">📺</div>
-        <div class="main-no-stream-text">No stream URL set for this stage</div>
-        <button class="main-no-stream-btn" onclick="openModal()">Set Stream URL →</button>
+        <div class="main-no-stream-text">No stream available for this stage</div>
       </div>
       <!-- Setlist panel -->
       <div class="setlist-panel hidden" id="setlist-panel">
@@ -1277,23 +1159,6 @@
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════
-     MODAL
-════════════════════════════════════════════════════ -->
-<div class="modal-backdrop hidden" id="modal-backdrop" onclick="backdropClick(event)">
-  <div class="modal">
-    <div class="modal-title">Set Stream URLs</div>
-    <div class="modal-sub">
-      Paste a YouTube video URL or video ID for each stage.<br>
-      Find all live streams at <a href="https://youtube.com/@coachella" target="_blank">youtube.com/@coachella</a> — look for the 7 concurrent live videos.
-    </div>
-    <div id="modal-inputs"></div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveStreams()">Save Streams</button>
-    </div>
-  </div>
-</div>
 
 
 <!-- ═══════════════════════════════════════════════════
@@ -1541,26 +1406,9 @@ const SCHED_END   = 26 * 60; // 2am next day
 // PERSISTENCE
 // ─────────────────────────────────────────────────────
 function loadIds() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('c26_streams') || '{}');
-    STAGES.forEach(s => {
-      videoIds[s.id] = (saved[s.id] !== undefined ? saved[s.id] : DEFAULTS[s.id]) || '';
-    });
-  } catch { STAGES.forEach(s => videoIds[s.id] = DEFAULTS[s.id] || ''); }
+  STAGES.forEach(s => { videoIds[s.id] = DEFAULTS[s.id] || ''; });
 }
 
-function saveIds() {
-  localStorage.setItem('c26_streams', JSON.stringify(videoIds));
-}
-
-function parseVideoId(raw) {
-  if (!raw) return '';
-  raw = raw.trim();
-  const m = raw.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (m) return m[1];
-  if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
-  return '';
-}
 
 // ─────────────────────────────────────────────────────
 // TIME HELPERS
@@ -1935,46 +1783,6 @@ function renderSwitcher() {
   });
 }
 
-// ─────────────────────────────────────────────────────
-// MODAL
-// ─────────────────────────────────────────────────────
-function openModal() {
-  const wrap = document.getElementById('modal-inputs');
-  wrap.innerHTML = STAGES.map(s => `
-    <div class="input-group">
-      <div class="input-label">
-        <span class="color-dot" style="background:${s.color}"></span>
-        ${s.name}
-      </div>
-      <input class="stream-input" id="mi_${s.id}" type="text"
-        placeholder="YouTube URL or video ID…"
-        value="${videoIds[s.id] || ''}">
-    </div>`).join('');
-  document.getElementById('modal-backdrop').classList.remove('hidden');
-}
-
-function closeModal() {
-  document.getElementById('modal-backdrop').classList.add('hidden');
-}
-
-function backdropClick(e) {
-  if (e.target === document.getElementById('modal-backdrop')) closeModal();
-}
-
-function saveStreams() {
-  STAGES.forEach(s => {
-    const el = document.getElementById(`mi_${s.id}`);
-    if (el) videoIds[s.id] = parseVideoId(el.value) || el.value.trim().replace(/https?:\/\/.*/, '');
-  });
-  saveIds();
-  closeModal();
-  renderGrid();
-  if (activeStageId) {
-    activeIframeId = '';
-    updateMain();
-    renderSwitcher();
-  }
-}
 
 // ─────────────────────────────────────────────────────
 // CLOCK & LIVE UPDATES
@@ -2363,9 +2171,7 @@ function setupKeyboard() {
       else closeSchedule();
     } else if (e.key === 'Escape') {
       const sched = document.getElementById('schedule-overlay');
-      const modal = document.getElementById('modal-backdrop');
       if (!sched.classList.contains('hidden')) { closeSchedule(); }
-      else if (!modal.classList.contains('hidden')) { closeModal(); }
       else if (activeStageId) { closeMain(); }
     }
   });
