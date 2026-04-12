@@ -890,41 +890,6 @@
     }
     @media (max-width: 700px) { .kb-hint { display: none; } }
 
-    /* ─── PiP WINDOWS ───────────────────────────────── */
-    #pip-container {
-      position: absolute; inset: 0;
-      pointer-events: none; z-index: 10;
-    }
-    .pip-window {
-      position: absolute; width: 200px; height: 112px;
-      background: #000; border-radius: 8px; overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.18);
-      pointer-events: all; cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.7);
-      user-select: none;
-    }
-    .pip-window:hover { border-color: rgba(255,255,255,0.42); }
-    .pip-window iframe {
-      width: 100%; height: 100%; border: none; display: block;
-      pointer-events: none;
-    }
-    .pip-drag-handle {
-      position: absolute; top: 0; left: 0; right: 0; height: 24px;
-      cursor: grab; z-index: 1;
-    }
-    .pip-drag-handle:active { cursor: grabbing; }
-    .pip-label {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 16px 7px 5px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.82));
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.5px; pointer-events: none; line-height: 1.3;
-    }
-    .pip-switch-hint {
-      font-size: 8px; color: rgba(255,255,255,0.45); font-weight: 400;
-      text-transform: none; letter-spacing: 0;
-    }
-
     /* ─── SCHEDULE OVERLAY ──────────────────────────── */
     #schedule-overlay {
       position: fixed; inset: 0; z-index: 160;
@@ -1021,6 +986,31 @@
       font-size: 8px; font-weight: 800; color: var(--pink);
       letter-spacing: 0.5px;
     }
+
+    /* ─── THEATER MODE ──────────────────────────────── */
+    .main-info-bar, .switcher-row {
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding-top 0.35s ease, padding-bottom 0.35s ease;
+    }
+    .main-info-bar { max-height: 120px; }
+    .switcher-row  { max-height: 200px; }
+
+    #main-view.theater .main-info-bar,
+    #main-view.theater .switcher-row {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .main-theater-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-dim); font-size: 13px; width: 32px; height: 32px;
+      border-radius: 8px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s; padding: 0;
+    }
+    .main-theater-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+    .main-theater-btn.active { color: var(--pink); border-color: rgba(232,53,109,0.4); background: rgba(232,53,109,0.08); }
   </style>
 </head>
 <body>
@@ -1092,6 +1082,11 @@
     <span class="main-stage-name" id="main-stage-name-el">Coachella Stage</span>
     <div class="main-topbar-right">
       <button class="main-mute-btn" id="main-mute-btn" onclick="toggleMainMute()" title="Mute / Unmute (M)">🔊</button>
+      <button class="main-theater-btn" id="main-theater-btn" onclick="toggleTheater()" title="Theater Mode (T)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+      </button>
       <button class="main-sched-btn" onclick="openSchedule()" title="Full Schedule (S)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -1100,6 +1095,7 @@
       <div class="kb-hint">
         <span class="kb-key">1–7</span>
         <span class="kb-key">M</span>
+        <span class="kb-key">T</span>
         <span class="kb-key">S</span>
         <span class="kb-key">Esc</span>
       </div>
@@ -1112,8 +1108,6 @@
       <iframe id="main-iframe"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen></iframe>
-      <!-- PiP windows injected here by renderPiP() -->
-      <div id="pip-container"></div>
       <!-- Shown when YouTube blocks embedding -->
       <div class="main-embed-blocked hidden" id="main-embed-blocked">
         <img id="main-blocked-thumb" src="" alt="">
@@ -1417,7 +1411,7 @@ let activeIframeId = '';  // track what's loaded in main-iframe
 let mainMuted = false;
 const muteStates = {};     // stageId -> boolean (true = muted)
 let scheduleViewDay = null;// currently displayed day in schedule overlay
-let pipDragState = null;   // {el, startX, startY, startLeft, startTop, moved}
+let theaterMode = false;
 
 // Schedule timeline constants
 const PX_PER_MIN  = 2;
@@ -1639,7 +1633,6 @@ function openMain(stageId) {
   document.getElementById('main-view').classList.remove('hidden');
   updateMain();
   renderSwitcher();
-  renderPiP();
 }
 
 // Smooth crossfade when switching stage in main view
@@ -1656,7 +1649,6 @@ function crossfadeToStage(stageId) {
     if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
     updateMain();
     renderSwitcher();
-    renderPiP();
     requestAnimationFrame(() => { wrap.style.opacity = '1'; });
   }, 250);
 }
@@ -1668,10 +1660,12 @@ function closeMain() {
   activeIframeId = '';
   activeStageId = null;
   mainMuted = false;
-  // Clear PiP
-  const pipContainer = document.getElementById('pip-container');
-  if (pipContainer) pipContainer.innerHTML = '';
-  pipDragState = null;
+  if (theaterMode) {
+    theaterMode = false;
+    document.getElementById('main-view').classList.remove('theater');
+    const btn = document.getElementById('main-theater-btn');
+    if (btn) btn.classList.remove('active');
+  }
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('grid-view').style.display = '';
 }
@@ -1928,6 +1922,16 @@ function liveUpdate() {
 }
 
 // ─────────────────────────────────────────────────────
+// THEATER MODE
+// ─────────────────────────────────────────────────────
+function toggleTheater() {
+  theaterMode = !theaterMode;
+  document.getElementById('main-view').classList.toggle('theater', theaterMode);
+  const btn = document.getElementById('main-theater-btn');
+  if (btn) btn.classList.toggle('active', theaterMode);
+}
+
+// ─────────────────────────────────────────────────────
 // MUTE / UNMUTE
 // ─────────────────────────────────────────────────────
 function toggleCardMute(stageId, e) {
@@ -1981,87 +1985,6 @@ function updateRebroadcastOverlays(day) {
   STAGES.forEach(stage => {
     const overlay = document.getElementById(`rb_${stage.id}`);
     if (overlay) overlay.classList.toggle('hidden', !isRebroadcast(stage.id, day));
-  });
-}
-
-// ─────────────────────────────────────────────────────
-// PiP WINDOWS
-// ─────────────────────────────────────────────────────
-// Global PiP drag handlers (attached once)
-document.addEventListener('mousemove', function(e) {
-  if (!pipDragState) return;
-  const { el, startX, startY, startLeft, startTop } = pipDragState;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) pipDragState.moved = true;
-  if (!pipDragState.moved) return;
-  const container = el.parentElement.getBoundingClientRect();
-  const maxLeft = container.width  - el.offsetWidth;
-  const maxTop  = container.height - el.offsetHeight;
-  el.style.left   = `${Math.max(0, Math.min(maxLeft, startLeft + dx))}px`;
-  el.style.top    = `${Math.max(0, Math.min(maxTop,  startTop  + dy))}px`;
-  el.style.right  = 'auto';
-  el.style.bottom = 'auto';
-});
-
-document.addEventListener('mouseup', function() {
-  if (!pipDragState) return;
-  if (!pipDragState.moved) {
-    crossfadeToStage(pipDragState.el.dataset.stageId);
-  }
-  pipDragState = null;
-});
-
-function makePiPDraggable(el) {
-  el.addEventListener('mousedown', function(e) {
-    if (e.button !== 0) return;
-    const rect = el.getBoundingClientRect();
-    const containerRect = el.parentElement.getBoundingClientRect();
-    pipDragState = {
-      el,
-      startX: e.clientX,
-      startY: e.clientY,
-      startLeft: rect.left - containerRect.left,
-      startTop:  rect.top  - containerRect.top,
-      moved: false
-    };
-    el.style.transition = 'none';
-    e.preventDefault();
-  });
-}
-
-function renderPiP() {
-  const container = document.getElementById('pip-container');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!activeStageId) return;
-
-  const day = festDay();
-  // Show up to 2 PiP windows for other stages that have a video set
-  const pipStages = STAGES.filter(s => s.id !== activeStageId && videoIds[s.id]).slice(0, 2);
-
-  pipStages.forEach((stage, i) => {
-    const vid = videoIds[stage.id];
-    const cur = getCurrentSet(stage.id, day);
-
-    const pip = document.createElement('div');
-    pip.className = 'pip-window';
-    pip.dataset.stageId = stage.id;
-    pip.style.right = '12px';
-    pip.style.top = `${12 + i * (112 + 10)}px`;
-
-    pip.innerHTML = `
-      <iframe src="${embedUrl(vid, true)}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen></iframe>
-      <div class="pip-drag-handle"></div>
-      <div class="pip-label" style="color:${stage.color}">
-        ${stage.name}${cur ? ` · ${cur.a}` : ''}
-        <div class="pip-switch-hint">Click to switch · Drag to move</div>
-      </div>`;
-
-    container.appendChild(pip);
-    makePiPDraggable(pip);
   });
 }
 
@@ -2194,6 +2117,8 @@ function setupKeyboard() {
         if (activeStageId) crossfadeToStage(STAGES[idx].id);
         else openMain(STAGES[idx].id);
       }
+    } else if (e.key === 't' || e.key === 'T') {
+      if (activeStageId) toggleTheater();
     } else if (e.key === 'm' || e.key === 'M') {
       if (activeStageId) toggleMainMute();
     } else if (e.key === 's' || e.key === 'S') {
