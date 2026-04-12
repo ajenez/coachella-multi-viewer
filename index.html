@@ -1063,6 +1063,40 @@
       max-height: 0;
     }
 
+    /* ─── UNMUTE PROMPT ────────────────────────────── */
+    .unmute-prompt {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      white-space: nowrap;
+      animation: unmuteIn 0.25s ease;
+    }
+    @keyframes unmuteIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .unmute-prompt.fading {
+      animation: unmuteOut 0.3s ease forwards;
+    }
+    @keyframes unmuteOut {
+      to { opacity: 0; transform: translateX(-50%) translateY(6px); }
+    }
+
     .main-theater-btn {
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
       color: var(--text-dim); font-size: 13px; width: 32px; height: 32px;
@@ -1169,6 +1203,10 @@
       <iframe id="main-iframe"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen></iframe>
+      <!-- Tap to unmute (mobile autoplay policy failsafe) -->
+      <div id="unmute-prompt" class="unmute-prompt hidden" onclick="handleUnmuteTap()">
+        🔇 Tap to unmute
+      </div>
       <!-- Shown when YouTube blocks embedding -->
       <div class="main-embed-blocked hidden" id="main-embed-blocked">
         <img id="main-blocked-thumb" src="" alt="">
@@ -1715,6 +1753,7 @@ function openMain(stageId) {
   updateMain();
   renderSwitcher();
   startSetlistPolling();
+  showUnmutePrompt();
 }
 
 // Smooth crossfade when switching stage in main view
@@ -1732,6 +1771,7 @@ function crossfadeToStage(stageId) {
     updateMain();
     renderSwitcher();
     startSetlistPolling();
+    showUnmutePrompt();
     requestAnimationFrame(() => { wrap.style.opacity = '1'; });
   }, 250);
 }
@@ -1739,6 +1779,7 @@ function crossfadeToStage(stageId) {
 function closeMain() {
   hideMainError();
   stopSetlistPolling();
+  dismissUnmutePrompt();
   const iframe = document.getElementById('main-iframe');
   iframe.src = '';
   activeIframeId = '';
@@ -2004,6 +2045,40 @@ function liveUpdate() {
     // Update rebroadcast overlays on grid
     updateRebroadcastOverlays(day);
   }
+}
+
+// ─────────────────────────────────────────────────────
+// UNMUTE PROMPT (mobile autoplay failsafe)
+// ─────────────────────────────────────────────────────
+const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+let unmuteTimer = null;
+
+function showUnmutePrompt() {
+  if (!isTouchDevice()) return;
+  const el = document.getElementById('unmute-prompt');
+  if (!el) return;
+  el.classList.remove('hidden', 'fading');
+  clearTimeout(unmuteTimer);
+  unmuteTimer = setTimeout(() => dismissUnmutePrompt(), 4000);
+}
+
+function dismissUnmutePrompt() {
+  const el = document.getElementById('unmute-prompt');
+  if (!el || el.classList.contains('hidden')) return;
+  el.classList.add('fading');
+  setTimeout(() => el.classList.add('hidden'), 300);
+}
+
+function handleUnmuteTap() {
+  const iframe = document.getElementById('main-iframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute',     args: [] }), '*');
+    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume',  args: [100] }), '*');
+  }
+  mainMuted = false;
+  const btn = document.getElementById('main-mute-btn');
+  if (btn) { btn.textContent = '🔊'; btn.classList.remove('muted'); }
+  dismissUnmutePrompt();
 }
 
 // ─────────────────────────────────────────────────────
