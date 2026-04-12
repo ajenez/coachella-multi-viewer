@@ -169,6 +169,24 @@
       transform: translateY(-2px);
       box-shadow: 0 12px 40px rgba(0,0,0,0.5);
     }
+    .stage-card.recently-viewed {
+      border-color: var(--stage-color, var(--border-hover));
+      box-shadow: 0 0 12px -6px var(--stage-color, rgba(255,255,255,0.1));
+    }
+    .stage-card.recently-viewed:hover {
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 12px -6px var(--stage-color, rgba(255,255,255,0.1));
+    }
+    .recently-watched-label {
+      position: absolute;
+      bottom: 11px;
+      right: 13px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      color: var(--stage-color, var(--text-dimmer));
+      opacity: 0.65;
+      pointer-events: none;
+    }
 
     .video-wrap {
       position: relative;
@@ -1551,6 +1569,7 @@ let favs       = new Set(); // composite favorite keys
 let notifFired = new Set(); // "key:phase" strings for fired notifications
 let wakeLock   = null;      // Screen Wake Lock sentinel
 let myScheduleFilter = false; // "My Schedule" filter toggle
+let lastStageId = null;     // most recently viewed stage in main view
 
 // Schedule timeline constants
 const PX_PER_MIN  = 2;
@@ -1791,6 +1810,7 @@ function closeMain() {
   const iframe = document.getElementById('main-iframe');
   iframe.src = '';
   activeIframeId = '';
+  lastStageId = activeStageId;
   activeStageId = null;
   mainMuted = false;
   if (theaterMode) {
@@ -1805,6 +1825,24 @@ function closeMain() {
   }
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('grid-view').style.display = '';
+
+  // Highlight the card the user just came from
+  document.querySelectorAll('.stage-card.recently-viewed').forEach(c => {
+    c.classList.remove('recently-viewed');
+    c.querySelector('.recently-watched-label')?.remove();
+  });
+  if (lastStageId) {
+    const card = document.querySelector(`.stage-card[data-id="${lastStageId}"]`);
+    const stage = STAGES.find(s => s.id === lastStageId);
+    if (card && stage) {
+      card.style.setProperty('--stage-color', stage.color);
+      card.classList.add('recently-viewed');
+      const label = document.createElement('div');
+      label.className = 'recently-watched-label';
+      label.textContent = 'Recently watched';
+      card.appendChild(label);
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────
