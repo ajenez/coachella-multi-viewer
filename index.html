@@ -1663,6 +1663,7 @@ function renderGrid() {
     const card = document.createElement('div');
     card.className = 'stage-card';
     card.dataset.id = stage.id;
+    card.setAttribute('ontouchstart', ''); // iOS: makes first tap fire click, not hover
 
     // Video section
     const isRb = isRebroadcast(stage.id, day);
@@ -1751,6 +1752,7 @@ function openMain(stageId) {
   showUnmutePrompt();
   setAmbientGlow(stageId);
   requestWakeLock();
+  localStorage.setItem('c26_view', `main:${stageId}`);
 }
 
 // Smooth crossfade when switching stage in main view
@@ -1798,6 +1800,7 @@ function closeMain() {
   }
   document.getElementById('main-view').classList.add('hidden');
   document.getElementById('grid-view').style.display = '';
+  localStorage.removeItem('c26_view');
 
   // Highlight the card the user just came from
   document.querySelectorAll('.stage-card.recently-viewed').forEach(c => {
@@ -2400,10 +2403,13 @@ function openSchedule() {
   renderScheduleDayTabs();
   renderScheduleView();
   document.getElementById('schedule-overlay').classList.remove('hidden');
+  localStorage.setItem('c26_sched_open', '1');
+  localStorage.setItem('c26_sched_day', scheduleViewDay);
 }
 
 function closeSchedule() {
   document.getElementById('schedule-overlay').classList.add('hidden');
+  localStorage.removeItem('c26_sched_open');
 }
 
 function renderScheduleDayTabs() {
@@ -2419,6 +2425,7 @@ function switchScheduleDay(day) {
   scheduleViewDay = day;
   renderScheduleDayTabs();
   renderScheduleView();
+  localStorage.setItem('c26_sched_day', day);
 }
 
 function renderScheduleView() {
@@ -2571,7 +2578,18 @@ function setupKeyboard() {
   pruneNotifHistory();
   scheduleViewDay = festDay() || FEST_DAYS[0];
   if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
+  // Restore saved schedule day if valid
+  const savedSchedDay = localStorage.getItem('c26_sched_day');
+  if (savedSchedDay && SCHEDULE[savedSchedDay]) scheduleViewDay = savedSchedDay;
   renderGrid();
+  // Restore last view
+  const savedView = localStorage.getItem('c26_view');
+  if (savedView && savedView.startsWith('main:')) {
+    const stageId = savedView.slice(5);
+    if (STAGES.find(s => s.id === stageId)) openMain(stageId);
+  }
+  // Restore schedule overlay if it was open
+  if (localStorage.getItem('c26_sched_open') === '1') openSchedule();
   updateClock();
   setInterval(updateClock, 1000);
   setInterval(liveUpdate, 30000);
