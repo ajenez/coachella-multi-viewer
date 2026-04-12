@@ -240,33 +240,8 @@
     }
     .find-stream-btn:hover { background: rgba(37,99,235,0.18); color: #60a5fa; }
 
-    /* Hover overlay */
-    .card-hover-overlay {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: calc(100% - 100px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.45);
-      opacity: 0;
-      transition: opacity 0.18s;
-      pointer-events: none;
-    }
-    .stage-card:hover .card-hover-overlay { opacity: 1; pointer-events: auto; }
-    .make-main-label {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.18);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      padding: 9px 22px;
-      border-radius: 30px;
-    }
+    /* Grid card iframes pass clicks through to the card */
+    .video-wrap iframe { pointer-events: none; }
 
     /* Card info */
     .card-info { padding: 13px 15px 14px; }
@@ -1712,7 +1687,6 @@ function renderGrid() {
             <div class="rb-icon">↺</div>
             <div class="rb-label">Rebroadcast</div>
           </div>
-          <div class="card-hover-overlay"><div class="make-main-label">▶ Make Main</div></div>
           <button class="mute-btn${muteStates[stage.id] ? ' muted' : ''}" id="mute_${stage.id}"
             onclick="toggleCardMute('${stage.id}', event)"
             title="${muteStates[stage.id] ? 'Unmute' : 'Mute'}">${muteStates[stage.id] ? '🔇' : '🔊'}</button>
@@ -1730,7 +1704,6 @@ function renderGrid() {
               Find on YouTube ↗
             </a>
           </div>
-          <div class="card-hover-overlay"><div class="make-main-label">▶ Make Main</div></div>
         </div>`;
     }
 
