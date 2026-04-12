@@ -987,6 +987,46 @@
       letter-spacing: 0.5px;
     }
 
+    /* ─── SETLIST PANEL ────────────────────────────── */
+    .setlist-panel {
+      position: absolute; bottom: 14px; right: 14px; z-index: 5;
+      width: 196px;
+      background: rgba(7,7,13,0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; overflow: hidden;
+      transition: opacity 0.2s;
+    }
+    .setlist-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 10px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .setlist-title {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-dim);
+    }
+    .setlist-count { font-size: 9px; color: var(--text-dimmer); }
+    .setlist-songs {
+      max-height: 154px; overflow-y: auto;
+      padding: 5px 0; scrollbar-width: none;
+    }
+    .setlist-songs::-webkit-scrollbar { display: none; }
+    .setlist-song {
+      padding: 3px 10px; font-size: 11px;
+      color: var(--text-dimmer); line-height: 1.45;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .setlist-song-latest {
+      color: var(--text); font-weight: 600;
+    }
+    .setlist-footer {
+      padding: 4px 10px 5px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 8px; color: var(--text-dimmer);
+    }
+
     /* ─── THEATER MODE ──────────────────────────────── */
     .main-info-bar, .switcher-row {
       overflow: hidden;
@@ -1124,6 +1164,15 @@
         <div class="main-no-stream-text">No stream URL set for this stage</div>
         <button class="main-no-stream-btn" onclick="openModal()">Set Stream URL →</button>
       </div>
+      <!-- Setlist panel -->
+      <div class="setlist-panel hidden" id="setlist-panel">
+        <div class="setlist-header">
+          <span class="setlist-title">♪ Setlist</span>
+          <span class="setlist-count" id="setlist-count"></span>
+        </div>
+        <div class="setlist-songs" id="setlist-songs"></div>
+        <div class="setlist-footer">via setlist.fm</div>
+      </div>
     </div>
 
     <div class="main-info-bar">
@@ -1196,6 +1245,9 @@ const STAGES = [
   { id: 'sonora',    name: 'Sonora',            color: '#f472b6', is4k: false },
   { id: 'quasar',    name: 'Quasar',            color: '#34d399', is4k: false },
 ];
+
+// Get a free API key at setlist.fm/settings/apps
+const SETLIST_API_KEY = '';
 
 // Weekend 1 stream IDs — update these for Weekend 2 (Apr 17–19)
 const DEFAULTS = {
@@ -1633,6 +1685,7 @@ function openMain(stageId) {
   document.getElementById('main-view').classList.remove('hidden');
   updateMain();
   renderSwitcher();
+  startSetlistPolling();
 }
 
 // Smooth crossfade when switching stage in main view
@@ -1649,12 +1702,14 @@ function crossfadeToStage(stageId) {
     if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
     updateMain();
     renderSwitcher();
+    startSetlistPolling();
     requestAnimationFrame(() => { wrap.style.opacity = '1'; });
   }, 250);
 }
 
 function closeMain() {
   hideMainError();
+  stopSetlistPolling();
   const iframe = document.getElementById('main-iframe');
   iframe.src = '';
   activeIframeId = '';
@@ -1986,6 +2041,82 @@ function updateRebroadcastOverlays(day) {
     const overlay = document.getElementById(`rb_${stage.id}`);
     if (overlay) overlay.classList.toggle('hidden', !isRebroadcast(stage.id, day));
   });
+}
+
+// ─────────────────────────────────────────────────────
+// SETLIST.FM
+// ─────────────────────────────────────────────────────
+const setlistCache = {};   // artistName -> { songs, updatedAt }
+let setlistPollTimer = null;
+
+function setlistDate() {
+  const d = getPDT();
+  if (d.getHours() < 4) d.setDate(d.getDate() - 1);
+  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+}
+
+async function fetchSetlist(artistName) {
+  if (!SETLIST_API_KEY) return null;
+  const key = artistName.toLowerCase();
+  const cached = setlistCache[key];
+  if (cached && Date.now() - cached.updatedAt < 90000) return cached.songs;
+
+  try {
+    const res = await fetch(
+      `https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(artistName)}&date=${setlistDate()}`,
+      { headers: { 'x-api-key': SETLIST_API_KEY, 'Accept': 'application/json' } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.setlist?.length) return null;
+
+    // Prefer the Coachella set (Empire Polo Club, Indio)
+    const sl = data.setlist.find(s =>
+      s.venue?.name?.toLowerCase().includes('polo') ||
+      s.venue?.city?.name?.toLowerCase().includes('indio')
+    ) || data.setlist[0];
+
+    const songs = (sl.sets?.set || [])
+      .flatMap(s => s.song || [])
+      .map(s => s.name)
+      .filter(Boolean);
+
+    setlistCache[key] = { songs, updatedAt: Date.now() };
+    return songs;
+  } catch { return null; }
+}
+
+async function updateSetlistPanel() {
+  if (!activeStageId) return;
+  const cur = getCurrentSet(activeStageId, festDay());
+  const panel = document.getElementById('setlist-panel');
+  if (!panel) return;
+
+  if (!cur || !SETLIST_API_KEY) { panel.classList.add('hidden'); return; }
+
+  const songs = await fetchSetlist(cur.a);
+  if (!songs?.length) { panel.classList.add('hidden'); return; }
+
+  document.getElementById('setlist-count').textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''}`;
+  const listEl = document.getElementById('setlist-songs');
+  listEl.innerHTML = songs.map((s, i) =>
+    `<div class="setlist-song${i === songs.length - 1 ? ' setlist-song-latest' : ''}">${s}</div>`
+  ).join('');
+  listEl.scrollTop = listEl.scrollHeight;
+  panel.classList.remove('hidden');
+}
+
+function startSetlistPolling() {
+  clearInterval(setlistPollTimer);
+  document.getElementById('setlist-panel')?.classList.add('hidden');
+  updateSetlistPanel();
+  setlistPollTimer = setInterval(updateSetlistPanel, 90000);
+}
+
+function stopSetlistPolling() {
+  clearInterval(setlistPollTimer);
+  setlistPollTimer = null;
+  document.getElementById('setlist-panel')?.classList.add('hidden');
 }
 
 // ─────────────────────────────────────────────────────
