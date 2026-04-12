@@ -1041,18 +1041,26 @@
     }
 
     /* ─── THEATER MODE ──────────────────────────────── */
-    .main-info-bar, .switcher-row {
+    .main-info-bar {
       overflow: hidden;
+      max-height: 120px;
       transition: max-height 0.35s ease, padding-top 0.35s ease, padding-bottom 0.35s ease;
     }
-    .main-info-bar { max-height: 120px; }
-    .switcher-row  { max-height: 200px; }
+    /* Wrapper handles the collapse so .switcher-row keeps overflow-x: auto */
+    .switcher-wrap {
+      overflow: hidden;
+      max-height: 200px;
+      flex-shrink: 0;
+      transition: max-height 0.35s ease;
+    }
 
-    #main-view.theater .main-info-bar,
-    #main-view.theater .switcher-row {
+    #main-view.theater .main-info-bar {
       max-height: 0;
       padding-top: 0;
       padding-bottom: 0;
+    }
+    #main-view.theater .switcher-wrap {
+      max-height: 0;
     }
 
     .main-theater-btn {
@@ -1205,7 +1213,9 @@
       </div>
     </div>
 
-    <div class="switcher-row" id="switcher-row"></div>
+    <div class="switcher-wrap">
+      <div class="switcher-row" id="switcher-row"></div>
+    </div>
   </div>
 </div>
 
