@@ -889,6 +889,62 @@
       letter-spacing: 0.5px;
     }
 
+    /* ─── FAVORITES NOTIFICATION ───────────────────── */
+    #notif-banner {
+      position: fixed; top: 0; left: 50%;
+      transform: translateX(-50%) translateY(-110%);
+      z-index: 200;
+      width: clamp(300px, 90vw, 480px);
+      background: rgba(10,10,20,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #notif-banner.notif-visible {
+      transform: translateX(-50%) translateY(0);
+    }
+    .notif-inner {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 16px 11px;
+    }
+    .notif-star { font-size: 18px; flex-shrink: 0; }
+    .notif-text-block { flex: 1; min-width: 0; }
+    .notif-headline {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 2px;
+    }
+    .notif-artist {
+      font-size: 15px; font-weight: 800;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .notif-meta { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+    .notif-dismiss {
+      background: none; border: none; color: var(--text-dimmer);
+      font-size: 20px; cursor: pointer; padding: 0 0 0 8px;
+      flex-shrink: 0; line-height: 1; transition: color 0.15s;
+    }
+    .notif-dismiss:hover { color: var(--text); }
+    .notif-progress {
+      height: 2px; background: currentColor; width: 100%;
+    }
+
+    /* ─── SCHEDULE FAVORITES ────────────────────────── */
+    .sched-fav-btn {
+      position: absolute; top: 3px; right: 3px; z-index: 6;
+      background: none; border: none; cursor: pointer;
+      font-size: 12px; padding: 2px; line-height: 1;
+      opacity: 0; transition: opacity 0.15s, transform 0.15s;
+      color: var(--text-dimmer);
+    }
+    .sched-set-block:hover .sched-fav-btn { opacity: 1; }
+    .sched-fav-btn.faved { opacity: 1; color: var(--orange); }
+    .sched-fav-btn:hover { transform: scale(1.2); }
+    .sched-set-block.is-faved { box-shadow: inset 2px 0 0 var(--orange); }
+
     /* ─── SETLIST PANEL ────────────────────────────── */
     .setlist-panel {
       position: absolute; bottom: 14px; right: 14px; z-index: 5;
@@ -998,6 +1054,20 @@
   </style>
 </head>
 <body>
+
+<!-- Favorites notification banner -->
+<div id="notif-banner" role="alert" aria-live="assertive">
+  <div class="notif-inner">
+    <span class="notif-star" id="notif-star">★</span>
+    <div class="notif-text-block">
+      <div class="notif-headline" id="notif-headline">Starting now</div>
+      <div class="notif-artist" id="notif-artist"></div>
+      <div class="notif-meta" id="notif-meta"></div>
+    </div>
+    <button class="notif-dismiss" onclick="dismissNotif()" aria-label="Dismiss">×</button>
+  </div>
+  <div class="notif-progress" id="notif-progress"></div>
+</div>
 
 <!-- File:// protocol warning -->
 <div class="file-warning-bar hidden" id="file-warning">
@@ -1396,6 +1466,8 @@ let mainMuted = false;
 const muteStates = {};     // stageId -> boolean (true = muted)
 let scheduleViewDay = null;// currently displayed day in schedule overlay
 let theaterMode = false;
+let favs       = new Set(); // composite favorite keys
+let notifFired = new Set(); // "key:phase" strings for fired notifications
 
 // Schedule timeline constants
 const PX_PER_MIN  = 2;
@@ -1802,6 +1874,7 @@ function updateClock() {
 }
 
 function liveUpdate() {
+  checkNotifications();
   const day = festDay();
   if (activeStageId) {
     // Update main artist info (not iframe src)
@@ -2033,6 +2106,119 @@ function stopSetlistPolling() {
 }
 
 // ─────────────────────────────────────────────────────
+// FAVORITES
+// ─────────────────────────────────────────────────────
+function favKey(day, stageId, set) {
+  return `${day}|${stageId}|${set.s[0]}:${set.s[1]}`;
+}
+function loadFavs() {
+  try { return new Set(JSON.parse(localStorage.getItem('c26_favs') || '[]')); }
+  catch { return new Set(); }
+}
+function saveFavs() {
+  localStorage.setItem('c26_favs', JSON.stringify([...favs]));
+}
+function isFaved(day, stageId, set) {
+  return favs.has(favKey(day, stageId, set));
+}
+function pruneFavs() {
+  const today = festDay();
+  const validDays = new Set(FEST_DAYS.filter(d => d >= today));
+  const pruned = [...favs].filter(k => validDays.has(k.split('|')[0]));
+  if (pruned.length !== favs.size) { favs = new Set(pruned); saveFavs(); }
+}
+function handleFavClick(e, day, stageId, sh, sm) {
+  e.stopPropagation();
+  const set = (SCHEDULE[day]?.[stageId] || []).find(s => s.s[0] === sh && s.s[1] === sm);
+  if (!set) return;
+  const k = favKey(day, stageId, set);
+  if (favs.has(k)) { favs.delete(k); } else { favs.add(k); }
+  saveFavs();
+  const isFavedNow = favs.has(k);
+  const btn = e.currentTarget;
+  btn.textContent = isFavedNow ? '★' : '☆';
+  btn.title       = isFavedNow ? 'Remove favorite' : 'Add to favorites';
+  btn.classList.toggle('faved', isFavedNow);
+  btn.closest('.sched-set-block')?.classList.toggle('is-faved', isFavedNow);
+}
+
+// ─────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────
+let notifTimer = null;
+
+function loadFiredNotifs() {
+  try { return new Set(JSON.parse(localStorage.getItem('c26_notif_fired') || '[]')); }
+  catch { return new Set(); }
+}
+function markFired(fireKey) {
+  notifFired.add(fireKey);
+  localStorage.setItem('c26_notif_fired', JSON.stringify([...notifFired]));
+}
+function pruneNotifHistory() {
+  const today = festDay();
+  const pruned = [...notifFired].filter(k => k.split('|')[0] >= today);
+  if (pruned.length !== notifFired.size) {
+    notifFired = new Set(pruned);
+    localStorage.setItem('c26_notif_fired', JSON.stringify(pruned));
+  }
+}
+
+function showNotif({ headline, artistName, stageName, stageColor, timeRange }) {
+  const banner  = document.getElementById('notif-banner');
+  document.getElementById('notif-headline').textContent = headline;
+  document.getElementById('notif-artist').textContent   = artistName;
+  document.getElementById('notif-artist').style.color   = stageColor;
+  document.getElementById('notif-star').style.color     = stageColor;
+  document.getElementById('notif-meta').textContent     = `${stageName} · ${timeRange}`;
+  const prog = document.getElementById('notif-progress');
+  prog.style.color      = stageColor;
+  prog.style.transition = 'none';
+  prog.style.width      = '100%';
+  prog.offsetWidth; // force reflow
+  prog.style.transition = 'width 6s linear';
+  prog.style.width      = '0%';
+  clearTimeout(notifTimer);
+  banner.classList.add('notif-visible');
+  notifTimer = setTimeout(dismissNotif, 6000);
+}
+
+function dismissNotif() {
+  clearTimeout(notifTimer);
+  notifTimer = null;
+  document.getElementById('notif-banner').classList.remove('notif-visible');
+}
+
+function checkNotifications() {
+  if (!favs.size) return;
+  const day = festDay();
+  if (!SCHEDULE[day]) return;
+  const now = festMins();
+  for (const [stageId, sets] of Object.entries(SCHEDULE[day])) {
+    for (const set of sets) {
+      if (!favs.has(favKey(day, stageId, set))) continue;
+      const sm   = set.s[0] * 60 + set.s[1];
+      const mins = sm - now;
+      const stage = STAGES.find(s => s.id === stageId);
+      const warnKey  = `${favKey(day, stageId, set)}:warning`;
+      const startKey = `${favKey(day, stageId, set)}:start`;
+      if (mins >= 8 && mins < 12 && !notifFired.has(warnKey)) {
+        markFired(warnKey);
+        showNotif({ headline: `Starting in ~${mins} min`, artistName: set.a,
+          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set) });
+        return;
+      }
+      if (mins >= 0 && mins < 3 && !notifFired.has(startKey)) {
+        markFired(startKey);
+        showNotif({ headline: 'Starting now ★', artistName: set.a,
+          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set) });
+        return;
+      }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────
 // SCHEDULE VIEW
 // ─────────────────────────────────────────────────────
 function openSchedule() {
@@ -2102,15 +2288,20 @@ function renderScheduleView() {
     sets.forEach(set => {
       const sm = set.s[0] * 60 + set.s[1];
       const em = set.e[0] * 60 + set.e[1];
-      const top    = (sm - SCHED_START) * PX_PER_MIN;
-      const height = Math.max(24, (em - sm) * PX_PER_MIN);
-      const isNow  = day === today && nowMins >= sm && nowMins < em;
-      const isPast = day === today && nowMins >= em;
-      inner += `<div class="sched-set-block${isNow ? ' now-playing' : ''}${isPast ? ' past' : ''}"
+      const top        = (sm - SCHED_START) * PX_PER_MIN;
+      const height     = Math.max(24, (em - sm) * PX_PER_MIN);
+      const isNow      = day === today && nowMins >= sm && nowMins < em;
+      const isPast     = day === today && nowMins >= em;
+      const isFavedSet = isFaved(day, st.id, set);
+      inner += `<div class="sched-set-block${isNow ? ' now-playing' : ''}${isPast ? ' past' : ''}${isFavedSet ? ' is-faved' : ''}"
         style="top:${top}px; height:${height}px; background:${st.color}1a; color:${st.color}; border-left-color:${st.color}"
         onclick="schedSetClick('${st.id}')" title="${set.a} · ${setRange(set)}">
         <div class="sched-set-name">${set.a}</div>
         ${height > 28 ? `<div class="sched-set-time">${setRange(set)}</div>` : ''}
+        <button class="sched-fav-btn${isFavedSet ? ' faved' : ''}"
+          onclick="handleFavClick(event,'${day}','${st.id}',${set.s[0]},${set.s[1]})"
+          title="${isFavedSet ? 'Remove favorite' : 'Add to favorites'}"
+          aria-label="${isFavedSet ? 'Remove favorite' : 'Add to favorites'}">${isFavedSet ? '★' : '☆'}</button>
       </div>`;
     });
     inner += `</div>`;
@@ -2182,6 +2373,10 @@ function setupKeyboard() {
 // ─────────────────────────────────────────────────────
 (function init() {
   loadIds();
+  favs       = loadFavs();
+  notifFired = loadFiredNotifs();
+  pruneFavs();
+  pruneNotifHistory();
   scheduleViewDay = festDay() || FEST_DAYS[0];
   if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
   renderGrid();
