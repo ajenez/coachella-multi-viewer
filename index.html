@@ -806,6 +806,35 @@
     }
     .schedule-title { font-size: 14px; font-weight: 800; flex-shrink: 0; }
     .sched-day-tabs { display: flex; gap: 4px; }
+
+    @media (max-width: 640px) {
+      .schedule-topbar {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 0 12px;
+        gap: 0 10px;
+      }
+      .schedule-title {
+        flex: 1;
+        font-size: 12px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+      }
+      .my-sched-btn { align-self: center; font-size: 10px; padding: 3px 8px; }
+      .sched-close-btn { align-self: center; }
+      .sched-day-tabs {
+        order: 10;
+        width: 100%;
+        overflow-x: auto;
+        padding: 8px 0 10px;
+        border-top: 1px solid var(--border);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .sched-day-tabs::-webkit-scrollbar { display: none; }
+      .sched-tab { padding: 5px 10px; }
+    }
     .sched-tab {
       padding: 5px 14px; border-radius: 7px; font-size: 11px; font-weight: 600;
       cursor: pointer; border: 1px solid var(--border);
@@ -1255,7 +1284,7 @@
 ════════════════════════════════════════════════════ -->
 <div id="schedule-overlay" class="hidden">
   <div class="schedule-topbar">
-    <span class="schedule-title">📅 Full Schedule</span>
+    <span class="schedule-title">Full Schedule</span>
     <div class="sched-day-tabs" id="sched-day-tabs"></div>
     <button class="my-sched-btn" id="my-sched-btn" onclick="toggleMyScheduleFilter()" title="Show only your starred sets">
       ★ My Schedule
