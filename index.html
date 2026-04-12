@@ -1663,7 +1663,6 @@ function renderGrid() {
     const card = document.createElement('div');
     card.className = 'stage-card';
     card.dataset.id = stage.id;
-    card.setAttribute('ontouchstart', ''); // iOS: makes first tap fire click, not hover
 
     // Video section
     const isRb = isRebroadcast(stage.id, day);
@@ -1730,7 +1729,17 @@ function renderGrid() {
         <div class="next-list">${nextHtml}</div>
       </div>`;
 
-    card.addEventListener('click', () => openMain(stage.id));
+    let touchStartY = 0;
+    card.addEventListener('touchstart', e => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    card.addEventListener('touchend', e => {
+      if (Math.abs(e.changedTouches[0].clientY - touchStartY) < 10) {
+        e.preventDefault();
+        openMain(stage.id);
+      }
+    });
+    card.addEventListener('click', () => openMain(stage.id)); // desktop fallback
     grid.appendChild(card);
   });
 }
