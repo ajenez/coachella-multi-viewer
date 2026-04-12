@@ -501,12 +501,15 @@
       background: var(--bg);
       flex-shrink: 0;
       scrollbar-width: none;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
     }
     .switcher-row::-webkit-scrollbar { display: none; }
 
     .switcher-card {
       flex-shrink: 0;
       width: 176px;
+      scroll-snap-align: start;
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -646,10 +649,26 @@
 
     /* Responsive main view */
     @media (max-width: 640px) {
-      .main-info-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .main-now-artist { font-size: 16px; }
+      .main-info-bar { padding: 10px 12px; gap: 8px; }
+      .main-now-block, .main-next-block { gap: 7px; }
+      .main-now-artist, .main-next-artist { font-size: 14px; }
+      .main-now-time, .main-next-time { font-size: 10px; }
+      .main-now-badge, .main-next-badge { font-size: 8px; padding: 2px 6px; letter-spacing: 0.6px; }
       .main-topbar-clock { display: none; }
-      .switcher-card { width: 150px; }
+
+      /* Carousel: ~2 cards visible with a peek of the third */
+      .switcher-row {
+        padding: 10px 12px;
+        gap: 8px;
+        /* Right padding creates visible bleed so users know more cards exist */
+        padding-right: 40px;
+      }
+      .switcher-card { width: calc(42vw); }
+    }
+
+    @media (max-width: 400px) {
+      /* Narrower phones: show ~1.5 cards */
+      .switcher-card { width: calc(58vw); }
     }
 
     /* ─── FILE:// WARNING ───────────────────────────── */
