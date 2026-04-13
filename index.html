@@ -2360,11 +2360,11 @@ function showNotif({ headline, artistName, stageName, stageColor, timeRange }) {
   prog.style.transition = 'none';
   prog.style.width      = '100%';
   prog.offsetWidth; // force reflow
-  prog.style.transition = 'width 6s linear';
+  prog.style.transition = 'width 15s linear';
   prog.style.width      = '0%';
   clearTimeout(notifTimer);
   banner.classList.add('notif-visible');
-  notifTimer = setTimeout(dismissNotif, 6000);
+  notifTimer = setTimeout(dismissNotif, 15000);
 }
 
 function dismissNotif() {
