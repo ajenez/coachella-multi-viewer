@@ -961,16 +961,16 @@
     .notif-dismiss:hover { color: var(--text); }
     .notif-remind {
       display: none;
-      margin-top: 6px;
+      flex-shrink: 0;
       background: none;
       border: 1px solid rgba(255,255,255,0.18);
       border-radius: 4px;
       color: var(--text-dim);
       font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
-      padding: 3px 8px;
+      padding: 4px 9px;
       cursor: pointer;
       transition: color 0.15s, border-color 0.15s;
-      text-align: left;
+      white-space: nowrap;
     }
     .notif-remind:hover { color: var(--text); border-color: rgba(255,255,255,0.35); }
     .notif-remind.reminded { color: #4ade80; border-color: rgba(74,222,128,0.4); }
@@ -1142,8 +1142,8 @@
       <div class="notif-headline" id="notif-headline">Starting now</div>
       <div class="notif-artist" id="notif-artist"></div>
       <div class="notif-meta" id="notif-meta"></div>
-      <button class="notif-remind" id="notif-remind" onclick="handleRemindMe(); event.stopPropagation();" aria-label="Set reminder">Remind me when it starts</button>
     </div>
+    <button class="notif-remind" id="notif-remind" onclick="handleRemindMe(); event.stopPropagation();" aria-label="Set reminder">Remind me when it starts</button>
     <button class="notif-dismiss" onclick="dismissNotif(); event.stopPropagation();" aria-label="Dismiss">×</button>
   </div>
   <div class="notif-progress" id="notif-progress"></div>
