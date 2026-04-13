@@ -959,6 +959,21 @@
       flex-shrink: 0; line-height: 1; transition: color 0.15s;
     }
     .notif-dismiss:hover { color: var(--text); }
+    .notif-remind {
+      display: none;
+      margin-top: 6px;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      text-align: left;
+    }
+    .notif-remind:hover { color: var(--text); border-color: rgba(255,255,255,0.35); }
+    .notif-remind.reminded { color: #4ade80; border-color: rgba(74,222,128,0.4); }
     .notif-progress {
       height: 2px; background: currentColor; width: 100%;
     }
@@ -1127,6 +1142,7 @@
       <div class="notif-headline" id="notif-headline">Starting now</div>
       <div class="notif-artist" id="notif-artist"></div>
       <div class="notif-meta" id="notif-meta"></div>
+      <button class="notif-remind" id="notif-remind" onclick="handleRemindMe(); event.stopPropagation();" aria-label="Set reminder">Remind me when it starts</button>
     </div>
     <button class="notif-dismiss" onclick="dismissNotif(); event.stopPropagation();" aria-label="Dismiss">×</button>
   </div>
@@ -1552,7 +1568,8 @@ let notifFired = new Set(); // "key:phase" strings for fired notifications
 let wakeLock   = null;      // Screen Wake Lock sentinel
 let myScheduleFilter = false; // "My Schedule" filter toggle
 let lastStageId = null;     // most recently viewed stage in main view
-let notifStageId = null;    // stage associated with the current notification
+let notifStageId    = null;  // stage associated with the current notification
+let pendingReminder = null;  // remind-me data for the current notification
 
 // Schedule timeline constants
 const PX_PER_MIN  = 2;
@@ -2356,14 +2373,95 @@ function pruneNotifHistory() {
   }
 }
 
-function showNotif({ headline, artistName, stageName, stageColor, timeRange, stageId }) {
-  notifStageId = stageId || null;
+// ─────────────────────────────────────────────────────
+// REMINDERS  (persist across page loads via localStorage)
+// ─────────────────────────────────────────────────────
+const REMINDERS_KEY = 'c26_reminders';
+
+function loadReminders() {
+  try { return JSON.parse(localStorage.getItem(REMINDERS_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveReminders(list) {
+  localStorage.setItem(REMINDERS_KEY, JSON.stringify(list));
+}
+
+// Convert a festival day string + set start [h,m] to a real UTC epoch (ms).
+// PDT = UTC-7; post-midnight hours (>=24) roll to next calendar day.
+function setStartEpoch(dayStr, set) {
+  const [year, month, day] = dayStr.split('-').map(Number);
+  let hour = set.s[0], min = set.s[1], dayOffset = 0;
+  if (hour >= 24) { hour -= 24; dayOffset = 1; }
+  return Date.UTC(year, month - 1, day + dayOffset, hour + 7, min);
+}
+
+function fireReminder(r) {
+  // Prevent the regular checkNotifications loop from also firing "starting now"
+  markFired(r.startKey);
+  // Remove this reminder from storage
+  saveReminders(loadReminders().filter(x => x.startKey !== r.startKey));
+  showNotif({
+    headline:   'Starting now ★',
+    artistName: r.artistName,
+    stageName:  r.stageName,
+    stageColor: r.stageColor,
+    timeRange:  r.timeRange,
+    stageId:    r.stageId,
+    // no remindData — it's already starting
+  });
+}
+
+function scheduleReminder(r) {
+  const delay = r.startEpoch - Date.now();
+  if (delay <= 0) { fireReminder(r); return; }
+  setTimeout(() => fireReminder(r), delay);
+}
+
+// Called on init — re-registers timeouts for any persisted reminders.
+function scheduleReminders() {
+  const now  = Date.now();
+  const all  = loadReminders();
+  // Keep reminders that haven't expired (allow up to 3 min grace past start time)
+  const active = all.filter(r => r.startEpoch > now - 3 * 60 * 1000);
+  if (active.length !== all.length) saveReminders(active);
+  active.forEach(r => scheduleReminder(r));
+}
+
+function handleRemindMe() {
+  if (!pendingReminder) return;
+  const r = pendingReminder;
+  // Deduplicate by startKey and save
+  const existing = loadReminders().filter(x => x.startKey !== r.startKey);
+  existing.push(r);
+  saveReminders(existing);
+  scheduleReminder(r);
+  // Show brief confirmation in the button, then dismiss
+  const btn = document.getElementById('notif-remind');
+  if (btn) {
+    btn.textContent = '✓ Reminder set';
+    btn.classList.add('reminded');
+    btn.disabled = true;
+  }
+  setTimeout(dismissNotif, 1400);
+}
+
+function showNotif({ headline, artistName, stageName, stageColor, timeRange, stageId, remindData }) {
+  notifStageId    = stageId    || null;
+  pendingReminder = remindData || null;
   const banner  = document.getElementById('notif-banner');
   document.getElementById('notif-headline').textContent = headline;
   document.getElementById('notif-artist').textContent   = artistName;
   document.getElementById('notif-artist').style.color   = stageColor;
   document.getElementById('notif-star').style.color     = stageColor;
   document.getElementById('notif-meta').textContent     = `${stageName} · ${timeRange}`;
+  // Show or hide the "Remind me" button
+  const remindBtn = document.getElementById('notif-remind');
+  if (remindBtn) {
+    remindBtn.style.display = remindData ? 'inline-block' : 'none';
+    remindBtn.textContent   = 'Remind me when it starts';
+    remindBtn.classList.remove('reminded');
+    remindBtn.disabled      = false;
+  }
   const prog = document.getElementById('notif-progress');
   prog.style.color      = stageColor;
   prog.style.transition = 'none';
@@ -2405,8 +2503,23 @@ function checkNotifications() {
       const startKey = `${favKey(day, stageId, set)}:start`;
       if (mins >= 8 && mins < 12 && !notifFired.has(warnKey)) {
         markFired(warnKey);
-        showNotif({ headline: `Starting in ~${mins} min`, artistName: set.a,
-          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set), stageId });
+        showNotif({
+          headline:   `Starting in ~${mins} min`,
+          artistName: set.a,
+          stageName:  stage.name,
+          stageColor: stage.color,
+          timeRange:  setRange(set),
+          stageId,
+          remindData: {
+            artistName: set.a,
+            stageName:  stage.name,
+            stageColor: stage.color,
+            timeRange:  setRange(set),
+            stageId,
+            startEpoch: setStartEpoch(day, set),
+            startKey,
+          },
+        });
         return;
       }
       if (mins >= 0 && mins < 3 && !notifFired.has(startKey)) {
@@ -2602,6 +2715,7 @@ function setupKeyboard() {
   notifFired = loadFiredNotifs();
   pruneFavs();
   pruneNotifHistory();
+  scheduleReminders();
   scheduleViewDay = festDay() || FEST_DAYS[0];
   if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
   // Restore saved schedule day if valid
