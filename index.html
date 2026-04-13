@@ -1120,7 +1120,7 @@
 <body>
 
 <!-- Favorites notification banner -->
-<div id="notif-banner" role="alert" aria-live="assertive">
+<div id="notif-banner" role="alert" aria-live="assertive" onclick="handleNotifClick()">
   <div class="notif-inner">
     <span class="notif-star" id="notif-star">★</span>
     <div class="notif-text-block">
@@ -1128,7 +1128,7 @@
       <div class="notif-artist" id="notif-artist"></div>
       <div class="notif-meta" id="notif-meta"></div>
     </div>
-    <button class="notif-dismiss" onclick="dismissNotif()" aria-label="Dismiss">×</button>
+    <button class="notif-dismiss" onclick="dismissNotif(); event.stopPropagation();" aria-label="Dismiss">×</button>
   </div>
   <div class="notif-progress" id="notif-progress"></div>
 </div>
@@ -1545,6 +1545,7 @@ let notifFired = new Set(); // "key:phase" strings for fired notifications
 let wakeLock   = null;      // Screen Wake Lock sentinel
 let myScheduleFilter = false; // "My Schedule" filter toggle
 let lastStageId = null;     // most recently viewed stage in main view
+let notifStageId = null;    // stage associated with the current notification
 
 // Schedule timeline constants
 const PX_PER_MIN  = 2;
@@ -2348,7 +2349,8 @@ function pruneNotifHistory() {
   }
 }
 
-function showNotif({ headline, artistName, stageName, stageColor, timeRange }) {
+function showNotif({ headline, artistName, stageName, stageColor, timeRange, stageId }) {
+  notifStageId = stageId || null;
   const banner  = document.getElementById('notif-banner');
   document.getElementById('notif-headline').textContent = headline;
   document.getElementById('notif-artist').textContent   = artistName;
@@ -2373,6 +2375,14 @@ function dismissNotif() {
   document.getElementById('notif-banner').classList.remove('notif-visible');
 }
 
+function handleNotifClick() {
+  if (!notifStageId) return;
+  const sid = notifStageId;
+  dismissNotif();
+  if (activeStageId) crossfadeToStage(sid);
+  else openMain(sid);
+}
+
 function checkNotifications() {
   if (!favs.size) return;
   const day = festDay();
@@ -2389,13 +2399,13 @@ function checkNotifications() {
       if (mins >= 8 && mins < 12 && !notifFired.has(warnKey)) {
         markFired(warnKey);
         showNotif({ headline: `Starting in ~${mins} min`, artistName: set.a,
-          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set) });
+          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set), stageId });
         return;
       }
       if (mins >= 0 && mins < 3 && !notifFired.has(startKey)) {
         markFired(startKey);
         showNotif({ headline: 'Starting now ★', artistName: set.a,
-          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set) });
+          stageName: stage.name, stageColor: stage.color, timeRange: setRange(set), stageId });
         return;
       }
     }
