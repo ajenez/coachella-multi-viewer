@@ -1108,6 +1108,11 @@
     .main-fullscreen-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
     .main-fullscreen-btn.active { color: var(--purple); border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); }
 
+    /* ─── IFRAME SWIPE GUARD ────────────────────────── */
+    #iframe-swipe-guard {
+      position: absolute; inset: 0; z-index: 1;
+    }
+
     /* ─── MY SCHEDULE FILTER ────────────────────────── */
     .my-sched-btn {
       display: flex; align-items: center; gap: 5px;
@@ -1243,6 +1248,8 @@
       <iframe id="main-iframe"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen></iframe>
+      <!-- Swipe guard: captures trackpad wheel events so horizontal swipe triggers back nav instead of routing into the iframe -->
+      <div id="iframe-swipe-guard"></div>
       <!-- Tap to unmute (mobile autoplay policy failsafe) -->
       <div id="unmute-prompt" class="unmute-prompt hidden" onclick="handleUnmuteTap()">
         🔇 Tap to unmute
@@ -2891,6 +2898,22 @@ function setupKeyboard() {
       requestWakeLock();
     }
   });
+  // Swipe guard: transparent overlay over the main iframe that captures
+  // trackpad wheel events (horizontal swipe) so the browser back gesture
+  // works instead of routing into the iframe. On pointerdown it briefly
+  // yields pointer-events so clicks still reach the video.
+  const swipeGuard = document.getElementById('iframe-swipe-guard');
+  swipeGuard.addEventListener('pointerdown', () => {
+    swipeGuard.style.pointerEvents = 'none';
+    setTimeout(() => { swipeGuard.style.pointerEvents = ''; }, 600);
+  });
+  swipeGuard.addEventListener('wheel', (e) => {
+    if (!activeStageId) return;
+    if (e.deltaX < -50 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      closeMain();
+    }
+  }, { passive: true });
+
   // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
   if (window.location.protocol === 'file:') {
     document.getElementById('file-warning').classList.remove('hidden');
