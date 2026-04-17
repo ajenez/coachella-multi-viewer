@@ -1928,6 +1928,7 @@ function renderGrid() {
 // MAIN VIEW
 // ─────────────────────────────────────────────────────
 function openMain(stageId) {
+  history.pushState({ view: 'main', stageId }, '');
   activeStageId = stageId;
   activeIframeId = '';
   mainMuted = false;
@@ -1947,6 +1948,7 @@ function openMain(stageId) {
 // Smooth crossfade when switching stage in main view
 function crossfadeToStage(stageId) {
   if (!activeStageId || stageId === activeStageId) return;
+  history.replaceState({ view: 'main', stageId }, '');
   const wrap = document.querySelector('.main-player-wrap');
   wrap.style.opacity = '0';
   setTimeout(() => {
@@ -1965,7 +1967,7 @@ function crossfadeToStage(stageId) {
   }, 250);
 }
 
-function closeMain() {
+function _closeMain() {
   hideMainError();
   stopSetlistPolling();
   dismissUnmutePrompt();
@@ -2008,6 +2010,11 @@ function closeMain() {
       card.appendChild(label);
     }
   }
+}
+
+function closeMain() {
+  if (!activeStageId) return;
+  history.back();
 }
 
 // ─────────────────────────────────────────────────────
@@ -2889,6 +2896,13 @@ function setupKeyboard() {
   setInterval(updateClock, 1000);
   setInterval(liveUpdate, 30000);
   setupKeyboard();
+  // Seed history so browser back stays within the app
+  history.replaceState({ view: 'grid' }, '');
+  window.addEventListener('popstate', (e) => {
+    if (!e.state || e.state.view === 'grid') {
+      if (activeStageId) _closeMain();
+    }
+  });
   // Fullscreen change — keep button state in sync
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -2910,9 +2924,10 @@ function setupKeyboard() {
   swipeGuard.addEventListener('wheel', (e) => {
     if (!activeStageId) return;
     if (e.deltaX < -50 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      e.preventDefault();
       closeMain();
     }
-  }, { passive: true });
+  }, { passive: false });
 
   // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
   if (window.location.protocol === 'file:') {
