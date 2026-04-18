@@ -863,10 +863,7 @@
       transition: all 0.15s; flex-shrink: 0;
     }
     .sched-close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-    .schedule-body {
-      flex: 1; overflow: auto; position: relative;
-      max-width: 1280px; width: 100%; margin: 0 auto;
-    }
+    .schedule-body { flex: 1; overflow: auto; position: relative; }
     .sched-stage-headers {
       display: flex; position: sticky; top: 0; z-index: 10;
       background: rgba(10,10,20,0.97); backdrop-filter: blur(12px);
@@ -876,13 +873,13 @@
       width: 56px; flex-shrink: 0; position: relative;
     }
     .sched-stage-header {
-      width: 170px; flex-shrink: 0; padding: 9px 10px 8px;
+      flex: 1 1 0; min-width: 0; padding: 9px 10px 8px;
       font-size: 9px; font-weight: 800; text-transform: uppercase;
       letter-spacing: 0.8px; text-align: center;
       border-left: 1px solid var(--border);
     }
     .sched-grid-wrap {
-      display: flex; min-width: max-content; position: relative;
+      display: flex; position: relative;
     }
     .sched-time-ruler {
       width: 56px; flex-shrink: 0; position: relative;
@@ -895,7 +892,7 @@
       font-variant-numeric: tabular-nums;
     }
     .sched-stage-col {
-      width: 170px; flex-shrink: 0; position: relative;
+      flex: 1 1 0; min-width: 0; position: relative;
       border-left: 1px solid var(--border);
     }
     .sched-hour-line {
