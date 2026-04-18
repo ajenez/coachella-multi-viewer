@@ -2919,22 +2919,16 @@ function setupKeyboard() {
       requestWakeLock();
     }
   });
-  // Swipe guard: transparent overlay over the main iframe that captures
-  // trackpad wheel events (horizontal swipe) so the browser back gesture
-  // works instead of routing into the iframe. On pointerdown it briefly
-  // yields pointer-events so clicks still reach the video.
+  // Swipe guard: transparent overlay over the main iframe. Its only job is
+  // to sit above the iframe so the browser sees trackpad swipes against the
+  // page (not the iframe) — letting the OS drive native back/forward
+  // gestures, which fire popstate in both directions. On pointerdown it
+  // briefly yields pointer-events so clicks still reach the video.
   const swipeGuard = document.getElementById('iframe-swipe-guard');
   swipeGuard.addEventListener('pointerdown', () => {
     swipeGuard.style.pointerEvents = 'none';
     setTimeout(() => { swipeGuard.style.pointerEvents = ''; }, 600);
   });
-  swipeGuard.addEventListener('wheel', (e) => {
-    if (!activeStageId) return;
-    if (e.deltaX < -50 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      e.preventDefault();
-      closeMain();
-    }
-  }, { passive: false });
 
   // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
   if (window.location.protocol === 'file:') {
