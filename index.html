@@ -1927,8 +1927,7 @@ function renderGrid() {
 // ─────────────────────────────────────────────────────
 // MAIN VIEW
 // ─────────────────────────────────────────────────────
-function openMain(stageId) {
-  history.pushState({ view: 'main', stageId }, '');
+function _openMain(stageId) {
   activeStageId = stageId;
   activeIframeId = '';
   mainMuted = false;
@@ -1943,6 +1942,11 @@ function openMain(stageId) {
   setAmbientGlow(stageId);
   requestWakeLock();
   localStorage.setItem('c26_view', `main:${stageId}`);
+}
+
+function openMain(stageId) {
+  history.pushState({ view: 'main', stageId }, '');
+  _openMain(stageId);
 }
 
 // Smooth crossfade when switching stage in main view
@@ -2899,8 +2903,11 @@ function setupKeyboard() {
   // Seed history so browser back stays within the app
   history.replaceState({ view: 'grid' }, '');
   window.addEventListener('popstate', (e) => {
-    if (!e.state || e.state.view === 'grid') {
+    const state = e.state;
+    if (!state || state.view === 'grid') {
       if (activeStageId) _closeMain();
+    } else if (state.view === 'main') {
+      if (!activeStageId) _openMain(state.stageId);
     }
   });
   // Fullscreen change — keep button state in sync
