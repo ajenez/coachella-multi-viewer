@@ -1108,11 +1108,6 @@
     .main-fullscreen-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
     .main-fullscreen-btn.active { color: var(--purple); border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); }
 
-    /* ─── IFRAME SWIPE GUARD ────────────────────────── */
-    #iframe-swipe-guard {
-      position: absolute; inset: 0; z-index: 1;
-    }
-
     /* ─── MY SCHEDULE FILTER ────────────────────────── */
     .my-sched-btn {
       display: flex; align-items: center; gap: 5px;
@@ -1248,8 +1243,6 @@
       <iframe id="main-iframe"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen></iframe>
-      <!-- Swipe guard: captures trackpad wheel events so horizontal swipe triggers back nav instead of routing into the iframe -->
-      <div id="iframe-swipe-guard"></div>
       <!-- Tap to unmute (mobile autoplay policy failsafe) -->
       <div id="unmute-prompt" class="unmute-prompt hidden" onclick="handleUnmuteTap()">
         🔇 Tap to unmute
@@ -1403,7 +1396,7 @@ const SCHEDULE = {
     gobi: [
       { a: 'Cahuilla Bird Singers', s: [14,15], e: [14,45] },
       { a: 'Bob Baker Marionettes', s: [14,55], e: [15,35] },
-      { a: 'NewDad',                s: [16, 0], e: [16,40] },
+      { a: 'NewDad',                s: [16,45], e: [17,15] },
       { a: 'Joyce Manor',           s: [17,10], e: [17,50] },
       { a: 'CMAT',                  s: [18,15], e: [18,55] },
       { a: 'fakemink',              s: [19,20], e: [20, 0] },
@@ -1558,7 +1551,7 @@ const SCHEDULE = {
     gobi: [
       { a: 'Cahuilla Bird Singers and Dancers', s: [14,15], e: [14,45] },
       { a: 'Bob Baker Marionettes',             s: [14,55], e: [15,35] },
-      { a: 'NewDad',                            s: [16, 0], e: [16,40] },
+      { a: 'NewDad',                            s: [16,45], e: [17,15] },
       { a: 'Joyce Manor',                       s: [17,10], e: [17,50] },
       { a: 'CMAT',                              s: [18,15], e: [18,55] },
       { a: 'fakemink',                          s: [19,20], e: [20, 0] },
@@ -1927,7 +1920,7 @@ function renderGrid() {
 // ─────────────────────────────────────────────────────
 // MAIN VIEW
 // ─────────────────────────────────────────────────────
-function _openMain(stageId) {
+function openMain(stageId) {
   activeStageId = stageId;
   activeIframeId = '';
   mainMuted = false;
@@ -1944,15 +1937,9 @@ function _openMain(stageId) {
   localStorage.setItem('c26_view', `main:${stageId}`);
 }
 
-function openMain(stageId) {
-  history.pushState({ view: 'main', stageId }, '');
-  _openMain(stageId);
-}
-
 // Smooth crossfade when switching stage in main view
 function crossfadeToStage(stageId) {
   if (!activeStageId || stageId === activeStageId) return;
-  history.replaceState({ view: 'main', stageId }, '');
   const wrap = document.querySelector('.main-player-wrap');
   wrap.style.opacity = '0';
   setTimeout(() => {
@@ -1971,7 +1958,7 @@ function crossfadeToStage(stageId) {
   }, 250);
 }
 
-function _closeMain() {
+function closeMain() {
   hideMainError();
   stopSetlistPolling();
   dismissUnmutePrompt();
@@ -2014,11 +2001,6 @@ function _closeMain() {
       card.appendChild(label);
     }
   }
-}
-
-function closeMain() {
-  if (!activeStageId) return;
-  history.back();
 }
 
 // ─────────────────────────────────────────────────────
@@ -2900,16 +2882,6 @@ function setupKeyboard() {
   setInterval(updateClock, 1000);
   setInterval(liveUpdate, 30000);
   setupKeyboard();
-  // Seed history so browser back stays within the app
-  history.replaceState({ view: 'grid' }, '');
-  window.addEventListener('popstate', (e) => {
-    const state = e.state;
-    if (!state || state.view === 'grid') {
-      if (activeStageId) _closeMain();
-    } else if (state.view === 'main') {
-      if (!activeStageId) _openMain(state.stageId);
-    }
-  });
   // Fullscreen change — keep button state in sync
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -2919,15 +2891,15 @@ function setupKeyboard() {
       requestWakeLock();
     }
   });
-  // Swipe guard: transparent overlay over the main iframe. Its only job is
-  // to sit above the iframe so the browser sees trackpad swipes against the
-  // page (not the iframe) — letting the OS drive native back/forward
-  // gestures, which fire popstate in both directions. On pointerdown it
-  // briefly yields pointer-events so clicks still reach the video.
-  const swipeGuard = document.getElementById('iframe-swipe-guard');
-  swipeGuard.addEventListener('pointerdown', () => {
-    swipeGuard.style.pointerEvents = 'none';
-    setTimeout(() => { swipeGuard.style.pointerEvents = ''; }, 600);
+  // Auto-blur the main iframe whenever it takes focus. On Safari, trackpad
+  // back/forward gestures are routed to the focused frame — if the YouTube
+  // iframe is never focused, the gesture falls through to the top frame
+  // and triggers normal browser back. Tradeoff: YouTube keyboard shortcuts
+  // (space, arrows, f, m) stop working inside the iframe.
+  window.addEventListener('blur', () => {
+    if (document.activeElement && document.activeElement.id === 'main-iframe') {
+      setTimeout(() => { window.focus(); document.activeElement.blur?.(); }, 0);
+    }
   });
 
   // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
