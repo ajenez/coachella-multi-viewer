@@ -1920,6 +1920,19 @@ function renderGrid() {
 // ─────────────────────────────────────────────────────
 // MAIN VIEW
 // ─────────────────────────────────────────────────────
+// Replace the main iframe with a fresh DOM node so it starts with a clean
+// (single-entry) session history — otherwise YouTube's internal navigations
+// pile up and capture the browser back-swipe gesture.
+function recreateMainIframe() {
+  const old = document.getElementById('main-iframe');
+  if (!old) return;
+  const fresh = document.createElement('iframe');
+  fresh.id = 'main-iframe';
+  fresh.setAttribute('allow', old.getAttribute('allow') || '');
+  if (old.hasAttribute('allowfullscreen')) fresh.setAttribute('allowfullscreen', '');
+  old.replaceWith(fresh);
+}
+
 function openMain(stageId) {
   activeStageId = stageId;
   activeIframeId = '';
@@ -1928,6 +1941,7 @@ function openMain(stageId) {
   if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
   document.getElementById('grid-view').style.display = 'none';
   document.getElementById('main-view').classList.remove('hidden');
+  recreateMainIframe();
   updateMain();
   renderSwitcher();
   startSetlistPolling();
@@ -1949,6 +1963,7 @@ function crossfadeToStage(stageId) {
     mainMuted = false;
     const muteBtn = document.getElementById('main-mute-btn');
     if (muteBtn) { muteBtn.textContent = '🔊'; muteBtn.classList.remove('muted'); }
+    recreateMainIframe();
     updateMain();
     renderSwitcher();
     startSetlistPolling();
@@ -2891,17 +2906,6 @@ function setupKeyboard() {
       requestWakeLock();
     }
   });
-  // Auto-blur the main iframe whenever it takes focus. On Safari, trackpad
-  // back/forward gestures are routed to the focused frame — if the YouTube
-  // iframe is never focused, the gesture falls through to the top frame
-  // and triggers normal browser back. Tradeoff: YouTube keyboard shortcuts
-  // (space, arrows, f, m) stop working inside the iframe.
-  window.addEventListener('blur', () => {
-    if (document.activeElement && document.activeElement.id === 'main-iframe') {
-      setTimeout(() => { window.focus(); document.activeElement.blur?.(); }, 0);
-    }
-  });
-
   // Warn if opened from filesystem — YouTube blocks embeds on file:// origins
   if (window.location.protocol === 'file:') {
     document.getElementById('file-warning').classList.remove('hidden');
