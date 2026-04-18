@@ -805,17 +805,20 @@
       background: var(--bg); display: flex; flex-direction: column;
     }
     .schedule-topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; height: 52px;
       border-bottom: 1px solid var(--border);
       background: rgba(7,7,13,0.95); backdrop-filter: blur(20px);
-      flex-shrink: 0; gap: 16px;
+      flex-shrink: 0;
+    }
+    .schedule-topbar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px; gap: 16px;
+      box-sizing: border-box;
     }
     .schedule-title { font-size: 14px; font-weight: 800; flex-shrink: 0; }
     .sched-day-tabs { display: flex; gap: 4px; }
 
     @media (max-width: 640px) {
-      .schedule-topbar {
+      .schedule-topbar-inner {
         height: auto;
         flex-wrap: wrap;
         padding: 0 12px;
@@ -860,7 +863,10 @@
       transition: all 0.15s; flex-shrink: 0;
     }
     .sched-close-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-    .schedule-body { flex: 1; overflow: auto; position: relative; }
+    .schedule-body {
+      flex: 1; overflow: auto; position: relative;
+      max-width: 1280px; width: 100%; margin: 0 auto;
+    }
     .sched-stage-headers {
       display: flex; position: sticky; top: 0; z-index: 10;
       background: rgba(10,10,20,0.97); backdrop-filter: blur(12px);
@@ -1307,15 +1313,17 @@
 ════════════════════════════════════════════════════ -->
 <div id="schedule-overlay" class="hidden">
   <div class="schedule-topbar">
-    <span class="schedule-title">Full Schedule</span>
-    <div class="sched-day-tabs" id="sched-day-tabs"></div>
-    <button class="my-sched-btn" id="my-sched-btn" onclick="toggleMyScheduleFilter()" title="Show only your starred sets">
-      ★ My Schedule
-    </button>
-    <button class="sched-close-btn" onclick="closeSchedule()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      Close
-    </button>
+    <div class="schedule-topbar-inner">
+      <span class="schedule-title">Full Schedule</span>
+      <div class="sched-day-tabs" id="sched-day-tabs"></div>
+      <button class="my-sched-btn" id="my-sched-btn" onclick="toggleMyScheduleFilter()" title="Show only your starred sets">
+        ★ My Schedule
+      </button>
+      <button class="sched-close-btn" onclick="closeSchedule()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Close
+      </button>
+    </div>
   </div>
   <div class="schedule-body" id="schedule-body">
     <div class="sched-stage-headers" id="sched-stage-headers"></div>
@@ -2704,9 +2712,15 @@ function checkNotifications() {
 // SCHEDULE VIEW
 // ─────────────────────────────────────────────────────
 function openSchedule() {
-  scheduleViewDay = scheduleViewDay || festDay() || FEST_DAYS[0];
-  // Fall back to first known fest day if today isn't one
-  if (!SCHEDULE[scheduleViewDay]) scheduleViewDay = FEST_DAYS[0];
+  // Exit fullscreen first — the overlay is a sibling of #main-view and
+  // won't render inside a fullscreen subtree.
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
+  }
+  // Always open to today (or first fest day if today isn't a fest day)
+  const today = festDay();
+  scheduleViewDay = (today && SCHEDULE[today]) ? today : FEST_DAYS[0];
+  localStorage.setItem('c26_sched_day', scheduleViewDay);
   renderScheduleDayTabs();
   renderScheduleView();
   document.getElementById('schedule-overlay').classList.remove('hidden');
