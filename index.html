@@ -402,6 +402,20 @@
       transform: translateX(-50%);
       pointer-events: none;
     }
+    @media (max-width: 640px) {
+      .main-stage-name {
+        position: static;
+        left: auto;
+        transform: none;
+        flex: 1;
+        min-width: 0;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+      }
+    }
 
     .main-topbar-clock {
       font-size: 12px;
