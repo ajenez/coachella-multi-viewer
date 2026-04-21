@@ -1076,6 +1076,27 @@
       max-height: 0;
     }
 
+    /* Off-day TV mode: no grid to go back to, no sibling streams to switch to */
+    body.off-day-mode #main-view .back-btn { display: none; }
+    body.off-day-mode #main-view .switcher-wrap { display: none; }
+    body.off-day-mode .kb-key-switch { display: none; }
+
+    .off-day-footer { display: none; }
+    body.off-day-mode .main-now-block,
+    body.off-day-mode #main-next-block { display: none !important; }
+    body.off-day-mode .off-day-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 1;
+      color: var(--text-dim);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .off-day-footer-emoji { font-size: 18px; }
+
     /* ─── UNMUTE PROMPT ────────────────────────────── */
     .unmute-prompt {
       position: absolute;
@@ -1249,9 +1270,9 @@
         </svg>
       </button>
       <div class="kb-hint">
-        <span class="kb-key" title="Switch stage (1–7)">1–7</span>
+        <span class="kb-key kb-key-switch" title="Switch stage (1–7)">1–7</span>
         <span class="kb-key" title="Mute / unmute (M)">M</span>
-        <span class="kb-key" title="Theater mode (T)">T</span>
+        <span class="kb-key kb-key-theater" title="Theater mode (T)">T</span>
         <span class="kb-key" title="Fullscreen (F)">F</span>
         <span class="kb-key" title="Full schedule (S)">S</span>
         <span class="kb-key" title="Go back (Esc)">Esc</span>
@@ -1303,6 +1324,11 @@
           <div class="main-now-time" id="main-now-time"></div>
         </div>
       </div>
+      <!-- Shown only in off-day TV mode (replaces the now/next row) -->
+      <div class="off-day-footer" id="off-day-footer">
+        <span class="off-day-footer-emoji">🌵</span>
+        <span class="off-day-footer-text">See you next year</span>
+      </div>
       <div class="main-next-block hidden" id="main-next-block">
         <div>
           <div class="main-next-artist" id="main-next-artist"></div>
@@ -1353,13 +1379,14 @@
 // STAGE DEFINITIONS
 // ─────────────────────────────────────────────────────
 const STAGES = [
-  { id: 'coachella', name: 'Coachella Stage',  color: '#f59e0b', is4k: true  },
-  { id: 'outdoor',   name: 'Outdoor Theatre',  color: '#38bdf8', is4k: true  },
-  { id: 'sahara',    name: 'Sahara',            color: '#f97316', is4k: true  },
-  { id: 'mojave',    name: 'Mojave',            color: '#a3e635', is4k: false },
-  { id: 'gobi',      name: 'Gobi',              color: '#c084fc', is4k: false },
-  { id: 'sonora',    name: 'Yuma',              color: '#f472b6', is4k: false },
-  { id: 'quasar',    name: 'Quasar',            color: '#34d399', is4k: false },
+  { id: 'coachella',   name: 'Coachella Stage',  color: '#f59e0b', is4k: true  },
+  { id: 'outdoor',     name: 'Outdoor Theatre',  color: '#38bdf8', is4k: true  },
+  { id: 'sahara',      name: 'Sahara',            color: '#f97316', is4k: true  },
+  { id: 'mojave',      name: 'Mojave',            color: '#a3e635', is4k: false },
+  { id: 'gobi',        name: 'Gobi',              color: '#c084fc', is4k: false },
+  { id: 'sonora',      name: 'Yuma',              color: '#f472b6', is4k: false },
+  { id: 'quasar',      name: 'Quasar',            color: '#34d399', is4k: false },
+  { id: 'coachellatv', name: 'Coachella TV',     color: '#ef4444', is4k: true  },
 ];
 
 // Get a free API key at setlist.fm/settings/apps
@@ -1367,13 +1394,14 @@ const SETLIST_API_KEY = '';
 
 // Weekend 2 stream IDs
 const DEFAULTS = {
-  coachella: 'xIiSaqq10Yw',
-  outdoor:   'CzAJcgiywFo',
-  sahara:    'bkCTPTwU7ls',
-  mojave:    'cYT79Dp0Wuk',
-  gobi:      'OMImphySFJs',
-  sonora:    's5A5Y93nmPI',
-  quasar:    'iulgXa5S62A',
+  coachella:   'xIiSaqq10Yw',
+  outdoor:     'CzAJcgiywFo',
+  sahara:      'bkCTPTwU7ls',
+  mojave:      'cYT79Dp0Wuk',
+  gobi:        'OMImphySFJs',
+  sonora:      's5A5Y93nmPI',
+  quasar:      'iulgXa5S62A',
+  coachellatv: 'EkIfxAHlgJA',
 };
 
 // ─────────────────────────────────────────────────────
@@ -1838,8 +1866,20 @@ function renderGrid() {
   const isLive = !!SCHEDULE[day];
   const grid = document.getElementById('stage-grid');
   const offDay = document.getElementById('off-day-screen');
+  const tvVid = videoIds.coachellatv;
 
   if (!isLive) {
+    // Off-day: if the Coachella TV stream is available, go straight to its
+    // main view and hide the grid/back-btn/switcher. If the TV ID is blank,
+    // fall back to the original "See you at the fest" message.
+    if (tvVid) {
+      document.body.classList.add('off-day-mode');
+      grid.classList.add('hidden');
+      offDay.classList.add('hidden');
+      if (activeStageId !== 'coachellatv') openMain('coachellatv');
+      return;
+    }
+    document.body.classList.remove('off-day-mode');
     grid.classList.add('hidden');
     offDay.classList.remove('hidden');
     const next = FEST_DAYS.find(d => d > day);
@@ -1848,6 +1888,7 @@ function renderGrid() {
     return;
   }
 
+  document.body.classList.remove('off-day-mode');
   offDay.classList.add('hidden');
   grid.classList.remove('hidden');
   grid.innerHTML = '';
@@ -1998,6 +2039,8 @@ function crossfadeToStage(stageId) {
 }
 
 function closeMain() {
+  // In off-day TV mode there's no grid to return to — keep the user here.
+  if (document.body.classList.contains('off-day-mode')) return;
   hideMainError();
   stopSetlistPolling();
   dismissUnmutePrompt();
@@ -2875,13 +2918,19 @@ function setupKeyboard() {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+    // In off-day TV mode there's only one stream visible — disable shortcuts
+    // that switch stages or toggle chrome that's already hidden.
+    const offDay = document.body.classList.contains('off-day-mode');
+
     if (e.key >= '1' && e.key <= '7') {
+      if (offDay) return;
       const idx = parseInt(e.key) - 1;
       if (idx < STAGES.length) {
         if (activeStageId) crossfadeToStage(STAGES[idx].id);
         else openMain(STAGES[idx].id);
       }
     } else if (e.key === 't' || e.key === 'T') {
+      if (offDay) return;
       if (activeStageId) toggleTheater();
     } else if (e.key === 'f' || e.key === 'F') {
       if (activeStageId) toggleFullscreen();
@@ -2915,11 +2964,13 @@ function setupKeyboard() {
   const savedSchedDay = localStorage.getItem('c26_sched_day');
   if (savedSchedDay && SCHEDULE[savedSchedDay]) scheduleViewDay = savedSchedDay;
   renderGrid();
-  // Restore last view
-  const savedView = localStorage.getItem('c26_view');
-  if (savedView && savedView.startsWith('main:')) {
-    const stageId = savedView.slice(5);
-    if (STAGES.find(s => s.id === stageId)) openMain(stageId);
+  // Restore last view — but only on fest days. Off-days force TV mode in renderGrid.
+  if (!document.body.classList.contains('off-day-mode')) {
+    const savedView = localStorage.getItem('c26_view');
+    if (savedView && savedView.startsWith('main:')) {
+      const stageId = savedView.slice(5);
+      if (STAGES.find(s => s.id === stageId)) openMain(stageId);
+    }
   }
   // Restore schedule overlay if it was open
   if (localStorage.getItem('c26_sched_open') === '1') openSchedule();
